@@ -1,0 +1,7 @@
+version: "3.9"
+services:
+  mcube-rag:
+    container_name: docker push 086272791573.dkr.ecr.ap-south-1.amazonaws.com/4500-k8s-qa:llm_doc 
+    env_file: .env
+    ports:
+      - "7001:7001"

@@ -1,0 +1,15 @@
+flask
+flask-cors
+elasticsearch==8.19.1
+requests
+python-dotenv
+tenacity
+tqdm
+pymupdf
+pdfminer.six
+pdfplumber
+camelot-py[cv]
+pypdfium2
+DBUtils
+pymysql
+python-pptx

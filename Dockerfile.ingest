@@ -1,0 +1,57 @@
+# -----------------------------
+# Base Python image
+# -----------------------------
+FROM python:3.10-slim
+
+# -----------------------------
+# System dependencies
+# -----------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    pkg-config \
+    ghostscript \
+    poppler-utils \
+    tesseract-ocr \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgl1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# -----------------------------
+# Set workdir
+# -----------------------------
+WORKDIR /app
+
+# -----------------------------
+# Install Python deps
+# -----------------------------
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# -----------------------------
+# Copy ingestion services
+# -----------------------------
+COPY ingest_service.py .
+COPY ingestor.py .
+
+# Copy environment file (Azure OpenAI + Elasticsearch credentials).
+# Required: load_dotenv() reads these at startup; without it the service
+# fails with "Azure OpenAI embedding config missing".
+# Alternatively, provide the same vars at runtime via --env-file / -e.
+COPY .env .
+
+# Create manuals folder (mounted at runtime via -v or docker-compose)
+RUN mkdir -p /app/manuals
+
+# -----------------------------
+# Expose port
+# -----------------------------
+EXPOSE 5001
+
+# -----------------------------
+# Run the service
+# -----------------------------
+CMD ["python", "ingest_service.py"]

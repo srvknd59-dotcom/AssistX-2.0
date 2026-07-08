@@ -1,9 +1,10 @@
 # Assistx
 
-Assistx is a Flask-based retrieval-augmented generation (RAG) service for mcube support content. It searches indexed product manuals, diagrams, and Jira Service Management (JSM) tickets in Elasticsearch, sends the retrieved context to OpenAI or Azure OpenAI, and returns grounded chat answers with source references.
+Assistx is a Flask-based retrieval-augmented generation (RAG) service for mcube support content. It searches indexed product manuals, diagrams, and Jira Service Management (JSM) tickets in Elasticsearch, sends the retrieved context to a configurable LLM provider, and returns grounded chat answers with source references.
 
 ## Features
 
+- **LLM-agnostic chat and embeddings** — swap providers (Azure OpenAI, OpenAI-compatible, Anthropic, Google Gemini) via environment variables, with chat and embeddings configured independently.
 - **Hybrid retrieval** over manuals and JSM tickets using BM25 plus optional vector search.
 - **Query improvement** with HyDE and multi-query expansion for better recall.
 - **Parallel retrieval** across manuals and JSM tickets to reduce response latency.
@@ -19,9 +20,13 @@ Assistx is a Flask-based retrieval-augmented generation (RAG) service for mcube 
 | Path | Purpose |
 | --- | --- |
 | `chat_service.py` | Main Flask API service for chat, retrieval, feedback, users, usage summaries, diagrams, and PPT downloads. |
-| `ingestor.py` | PDF and diagram ingestion pipeline that chunks manuals, captions diagrams, embeds content, and indexes documents into Elasticsearch. |
+| `llm_providers.py` | Provider-agnostic chat/embedding/vision-caption layer shared by all services (Azure, OpenAI-compatible, Anthropic, Gemini). |
+| `pdf_ingest.py` | Shared PDF/table/link extraction, chunking, and Elasticsearch indexing helpers used by both ingestion services. |
+| `ingestor.py` | CLI + REST PDF/diagram ingestion pipeline that chunks manuals, captions diagrams, embeds content, and indexes documents into Elasticsearch. |
+| `ingest_service.py` | Lightweight REST-only PDF upload/ingest endpoint (entrypoint for `Dockerfile.ingest`). |
 | `requirements.txt` | Python runtime dependencies. |
 | `Dockerfile` | Container image definition for the chat service. |
+| `Dockerfile.ingest` | Container image definition for the ingestion service. |
 | `docker-compose.yaml` | Minimal compose configuration for running the service with an `.env` file. |
 
 ## Requirements
@@ -29,7 +34,7 @@ Assistx is a Flask-based retrieval-augmented generation (RAG) service for mcube 
 - Python 3.10+
 - Elasticsearch 8.x
 - MariaDB or MySQL-compatible database for feedback, audit, user, and usage tables
-- Azure OpenAI or OpenAI API credentials
+- API credentials for your chosen chat and embedding providers (see below)
 - Optional system tools for full PDF/table/OCR support:
   - Poppler
   - Ghostscript
@@ -41,19 +46,53 @@ The application reads configuration from environment variables and an optional `
 
 ### LLM provider
 
+Chat/completions and embeddings are configured **independently** via `LLM_PROVIDER` and `EMBED_PROVIDER`, because not every chat provider also offers embeddings (e.g. Anthropic has none). `EMBED_PROVIDER` defaults to whatever `LLM_PROVIDER` is set to, so single-provider setups (e.g. all-Azure or all-OpenAI) only need to set `LLM_PROVIDER`.
+
 | Variable | Default | Description |
 | --- | --- | --- |
-| `LLM_PROVIDER` | `azure` | Use `azure` or `openai`. |
-| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible API base URL. |
-| `OPENAI_API_KEY` | empty | OpenAI API key. |
-| `OPENAI_CHAT_MODEL` | `gpt-4o-mini` | OpenAI chat model. |
-| `OPENAI_EMBED_MODEL` | `text-embedding-3-large` | OpenAI embedding model. |
+| `LLM_PROVIDER` | `azure` | Chat/vision provider: `azure`, `openai`, `anthropic`, or `gemini`. |
+| `EMBED_PROVIDER` | value of `LLM_PROVIDER` | Embedding provider: `azure`, `openai`, or `gemini` (not `anthropic` — it has no embeddings API). |
+
+**`openai`** — any OpenAI-compatible API (OpenAI itself, Groq, Together, Mistral, DeepSeek, Ollama, vLLM, OpenRouter, etc.) via a configurable base URL:
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | OpenAI-compatible API base URL. Point this at any compatible provider/self-hosted server. |
+| `OPENAI_API_KEY` | empty | API key for the above endpoint. |
+| `OPENAI_CHAT_MODEL` | `gpt-4o-mini` | Chat model name. |
+| `OPENAI_EMBED_MODEL` | `text-embedding-3-large` | Embedding model name. |
+| `OPENAI_VISION_MODEL` | value of `OPENAI_CHAT_MODEL` | Vision-capable model used for diagram captions during ingestion. |
+
+**`azure`** — Azure OpenAI:
+
+| Variable | Default | Description |
+| --- | --- | --- |
 | `AZURE_OPENAI_ENDPOINT` | empty | Azure OpenAI resource endpoint. |
 | `AZURE_OPENAI_API_KEY` | empty | Azure OpenAI API key. |
 | `AZURE_OPENAI_CHAT_DEPLOYMENT` | `gpt-4o-mini` | Azure chat deployment name. |
 | `AZURE_OPENAI_EMBED_DEPLOYMENT` | empty | Azure embedding deployment name. |
 | `AZURE_OPENAI_API_VERSION` | `2024-02-15-preview` | Azure OpenAI API version. |
-| `AZURE_OPENAI_VISION_DEPLOYMENT` | chat deployment | Optional Azure vision-capable deployment for diagram captions during ingestion. |
+| `AZURE_OPENAI_VISION_DEPLOYMENT` | chat deployment | Vision-capable deployment for diagram captions during ingestion. |
+
+**`anthropic`** — Claude (chat + vision only; pair with `EMBED_PROVIDER=openai`/`azure`/`gemini`):
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `ANTHROPIC_BASE_URL` | `https://api.anthropic.com` | Anthropic API base URL. |
+| `ANTHROPIC_API_KEY` | empty | Anthropic API key. |
+| `ANTHROPIC_CHAT_MODEL` | `claude-sonnet-5` | Claude model name. |
+| `ANTHROPIC_API_VERSION` | `2023-06-01` | Anthropic `anthropic-version` header value. |
+
+**`gemini`** — Google Gemini (chat, vision, and embeddings):
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `GEMINI_BASE_URL` | `https://generativelanguage.googleapis.com/v1beta` | Gemini API base URL. |
+| `GEMINI_API_KEY` | empty | Gemini API key. |
+| `GEMINI_CHAT_MODEL` | `gemini-2.0-flash` | Gemini chat/vision model name — confirm the current model ID in Google's docs. |
+| `GEMINI_EMBED_MODEL` | `text-embedding-004` | Gemini embedding model name — confirm the current model ID in Google's docs. |
+
+All providers are called via plain HTTP (`requests`), so no extra SDK dependencies are required to add or switch providers.
 
 ### Search and retrieval
 
@@ -128,7 +167,7 @@ The service listens on `PORT`, which defaults to `7001`.
 
 ## Ingest manuals and diagrams
 
-Run the ingestor after configuring Elasticsearch and Azure OpenAI embedding credentials:
+Run the ingestor after configuring Elasticsearch and your chosen embedding provider's credentials:
 
 ```bash
 python ingestor.py --root /path/to/manuals --recreate-index
@@ -139,6 +178,8 @@ Useful options:
 - `--root`: Manual root directory. Defaults to `DOCS_ROOT`.
 - `--only`: Ingest a single matching document or path.
 - `--recreate-index`: Recreate the target index before ingesting.
+
+`ingestor.py` can also run as a REST service (`python ingestor.py --serve`, port `INGESTOR_PORT`/`5002`) exposing `POST /api/ingest/pdf-upload` for single-PDF uploads. `ingest_service.py` exposes the same upload endpoint on port `5001` without the CLI/versioned-index machinery — it's the entrypoint used by `Dockerfile.ingest`. Both share their extraction and indexing logic via `pdf_ingest.py`.
 
 ## API overview
 
@@ -241,7 +282,7 @@ docker compose up
 Run a syntax check before committing Python changes:
 
 ```bash
-python -m py_compile chat_service.py ingestor.py
+python -m py_compile chat_service.py ingestor.py ingest_service.py pdf_ingest.py llm_providers.py
 ```
 
 ## Notes
@@ -249,3 +290,4 @@ python -m py_compile chat_service.py ingestor.py
 - Keep secrets in `.env` or your deployment secret manager; do not commit credentials.
 - The chat service and ingestor currently use different Elasticsearch URL variables (`ES_BASE_URL` and `ES_HOST`), so configure both when running both processes.
 - Ensure MariaDB tables expected by `chat_service.py` exist before using feedback, user, audit, or usage endpoints.
+- Mixing providers is expected, not a fallback: e.g. `LLM_PROVIDER=anthropic` with `EMBED_PROVIDER=openai` runs chat on Claude and embeddings on OpenAI in the same deployment.

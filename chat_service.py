@@ -39,6 +39,9 @@ from pptx.util import Inches, Pt
 import pymysql
 from pymysql.err import IntegrityError
 
+import llm_providers
+from llm_providers import LLM_PROVIDER, EMBED_PROVIDER
+
 
 # --------------------- Boot ---------------------
 load_dotenv()
@@ -46,20 +49,9 @@ logging.basicConfig(level=os.getenv("LOG_LEVEL", "INFO"))
 log = logging.getLogger("chat")
 
 # --------------------- Config: LLM Provider ---------------------
-LLM_PROVIDER = os.getenv("LLM_PROVIDER", "azure").strip().lower()  # "openai" or "azure"
-
-# ---- OpenAI ----
-OPENAI_BASE_URL = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-OPENAI_CHAT_MODEL = os.getenv("OPENAI_CHAT_MODEL", "gpt-4o-mini")
-OPENAI_EMBED_MODEL = os.getenv("OPENAI_EMBED_MODEL", "text-embedding-3-large")
-
-# ---- Azure OpenAI ----
-AZURE_ENDPOINT = os.getenv("AZURE_OPENAI_ENDPOINT", "").rstrip("/")
-AZURE_API_KEY = os.getenv("AZURE_OPENAI_API_KEY", "")
-AZURE_CHAT_DEPLOYMENT = os.getenv("AZURE_OPENAI_CHAT_DEPLOYMENT", "gpt-4o-mini")
-AZURE_EMBED_DEPLOYMENT = os.getenv("AZURE_OPENAI_EMBED_DEPLOYMENT", "")
-AZURE_API_VERSION = os.getenv("AZURE_OPENAI_API_VERSION", "2024-02-15-preview")
+# Chat/completions and embeddings are provider-agnostic; see llm_providers.py
+# for the supported providers (azure, openai-compatible, anthropic, gemini)
+# and the LLM_PROVIDER / EMBED_PROVIDER env vars that select them.
 
 # ---- Docs / images ----
 IMAGE_ROOT = os.path.abspath(os.getenv("IMAGE_ROOT", "./data/manuals"))
@@ -917,122 +909,12 @@ ES_DIMS, ES_INDICES = detect_es_dims(ES_ALIAS)
 
 # --------------------- Embeddings ---------------------
 def embed_text(text: str) -> Tuple[List[float], Dict]:
-    usage_norm = {"prompt_tokens": 0, "total_tokens": 0, "raw": {}}
-
-    if LLM_PROVIDER == "azure":
-        if not (AZURE_ENDPOINT and AZURE_EMBED_DEPLOYMENT and AZURE_API_KEY):
-            raise RuntimeError("Azure embeddings not configured")
-        url = f"{AZURE_ENDPOINT}/openai/deployments/{AZURE_EMBED_DEPLOYMENT}/embeddings?api-version={AZURE_API_VERSION}"
-        headers = {"api-key": AZURE_API_KEY, "Content-Type": "application/json"}
-        r = requests.post(url, headers=headers, json={"input": [text]}, timeout=60)
-        r.raise_for_status()
-        data = r.json()
-        vec = data["data"][0]["embedding"]
-
-        usage_raw = data.get("usage") or {}
-        usage_norm["raw"] = usage_raw
-        pt = usage_raw.get("prompt_tokens") or usage_raw.get("input_tokens") or 0
-        tt = usage_raw.get("total_tokens") or pt
-        usage_norm["prompt_tokens"] = int(pt)
-        usage_norm["total_tokens"] = int(tt)
-
-        log.info("EMBEDDING USAGE (azure): prompt=%s total=%s raw=%s",
-                 usage_norm["prompt_tokens"], usage_norm["total_tokens"], usage_raw)
-
-        return vec, usage_norm
-
-    else:
-        if not OPENAI_API_KEY:
-            raise RuntimeError("OpenAI API key missing")
-        url = f"{OPENAI_BASE_URL}/embeddings"
-        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type":"application/json"}
-        r = requests.post(url, headers=headers, json={"model": OPENAI_EMBED_MODEL, "input": [text]}, timeout=60)
-        r.raise_for_status()
-        data = r.json()
-        vec = data["data"][0]["embedding"]
-
-        usage_raw = data.get("usage") or {}
-        usage_norm["raw"] = usage_raw
-        pt = usage_raw.get("prompt_tokens") or 0
-        tt = usage_raw.get("total_tokens") or pt
-        usage_norm["prompt_tokens"] = int(pt)
-        usage_norm["total_tokens"] = int(tt)
-
-        log.info("EMBEDDING USAGE (openai): prompt=%s total=%s raw=%s",
-                 usage_norm["prompt_tokens"], usage_norm["total_tokens"], usage_raw)
-
-        return vec, usage_norm
+    return llm_providers.embed_text(text)
 
 
 # --------------------- Chat (LLM) ---------------------
 def chat_llm(messages: List[Dict], temperature=0.0, max_tokens=900) -> Tuple[str, Dict]:
-    usage_norm = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0, "raw": {}}
-
-    if LLM_PROVIDER == "azure":
-        if not (AZURE_ENDPOINT and AZURE_CHAT_DEPLOYMENT and AZURE_API_KEY):
-            raise RuntimeError("Azure chat not configured")
-        url = f"{AZURE_ENDPOINT}/openai/deployments/{AZURE_CHAT_DEPLOYMENT}/chat/completions?api-version={AZURE_API_VERSION}"
-        headers = {"api-key": AZURE_API_KEY, "Content-Type": "application/json"}
-        body = {"messages": messages, "temperature": temperature, "max_tokens": max_tokens}
-        r = requests.post(url, headers=headers, json=body, timeout=120)
-        if not r.ok:
-            try:
-                log.error("Azure LLM error %s: %s", r.status_code, r.json())
-            except Exception:
-                log.error("Azure LLM error %s: %s", r.status_code, r.text)
-            r.raise_for_status()
-
-        data = r.json()
-        content = data["choices"][0]["message"]["content"]
-        usage_raw = data.get("usage") or {}
-        usage_norm["raw"] = usage_raw
-
-        pt = usage_raw.get("prompt_tokens") or usage_raw.get("input_tokens") or 0
-        ct = usage_raw.get("completion_tokens") or usage_raw.get("output_tokens") or 0
-        tt = usage_raw.get("total_tokens") or (pt + ct)
-
-        usage_norm["prompt_tokens"] = int(pt)
-        usage_norm["completion_tokens"] = int(ct)
-        usage_norm["total_tokens"] = int(tt)
-
-        log.info("LLM USAGE (azure): prompt=%s completion=%s total=%s raw=%s",
-                 usage_norm["prompt_tokens"], usage_norm["completion_tokens"],
-                 usage_norm["total_tokens"], usage_raw)
-
-        return content, usage_norm
-
-    else:
-        if not OPENAI_API_KEY:
-            raise RuntimeError("OpenAI chat not configured")
-        url = f"{OPENAI_BASE_URL}/chat/completions"
-        headers = {"Authorization": f"Bearer {OPENAI_API_KEY}", "Content-Type": "application/json"}
-        body = {"model": OPENAI_CHAT_MODEL, "messages": messages, "temperature": temperature, "max_tokens": max_tokens}
-        r = requests.post(url, headers=headers, json=body, timeout=120)
-        if not r.ok:
-            try:
-                log.error("OpenAI LLM error %s: %s", r.status_code, r.json())
-            except Exception:
-                log.error("OpenAI LLM error %s: %s", r.status_code, r.text)
-            r.raise_for_status()
-
-        data = r.json()
-        content = data["choices"][0]["message"]["content"]
-        usage_raw = data.get("usage") or {}
-        usage_norm["raw"] = usage_raw
-
-        pt = usage_raw.get("prompt_tokens") or 0
-        ct = usage_raw.get("completion_tokens") or 0
-        tt = usage_raw.get("total_tokens") or (pt + ct)
-
-        usage_norm["prompt_tokens"] = int(pt)
-        usage_norm["completion_tokens"] = int(ct)
-        usage_norm["total_tokens"] = int(tt)
-
-        log.info("LLM USAGE (openai): prompt=%s completion=%s total=%s raw=%s",
-                 usage_norm["prompt_tokens"], usage_norm["completion_tokens"],
-                 usage_norm["total_tokens"], usage_raw)
-
-        return content, usage_norm
+    return llm_providers.chat_completion(messages, temperature=temperature, max_tokens=max_tokens)
 
 
 # --------------------- Retrieval: Manuals ---------------------
@@ -1781,7 +1663,7 @@ def chat_send():
         except Exception:
             total_emb_tokens = 0
         if total_emb_tokens > 0:
-            embed_model_name = AZURE_EMBED_DEPLOYMENT if LLM_PROVIDER == "azure" else OPENAI_EMBED_MODEL
+            embed_model_name = llm_providers.active_embed_model()
             try:
                 record_token_usage(
                     total_tokens=total_emb_tokens,
@@ -2150,7 +2032,7 @@ def chat_send():
         total_tokens = 0
 
     try:
-        model_name = OPENAI_CHAT_MODEL if LLM_PROVIDER == "openai" else AZURE_CHAT_DEPLOYMENT
+        model_name = llm_providers.active_chat_model()
         record_token_usage(
             total_tokens=total_tokens,
             session_id=sid,
@@ -2547,7 +2429,10 @@ def health():
     stats = get_usage_stats_for_today()
     return jsonify({
         "ok": True,
-        "provider": LLM_PROVIDER,
+        "llm_provider": LLM_PROVIDER,
+        "embed_provider": EMBED_PROVIDER,
+        "chat_model": llm_providers.active_chat_model(),
+        "embed_model": llm_providers.active_embed_model(),
         "es_alias": ES_ALIAS,
         "es_indices": get_alias_indices(ES_ALIAS),
         "es_vector_dims": ES_DIMS,

@@ -24,7 +24,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy your project files
-COPY  chat_service.py requirements.txt diagrams.zip  ./
+COPY  chat_service.py llm_providers.py requirements.txt diagrams.zip  ./
 COPY .env diagrams ./        
 #COPY data ./data     # optional: if you have sample manuals or diagrams
 

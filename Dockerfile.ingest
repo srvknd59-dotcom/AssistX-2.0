@@ -36,10 +36,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # -----------------------------
 COPY ingest_service.py .
 COPY ingestor.py .
+COPY pdf_ingest.py .
+COPY llm_providers.py .
 
-# Copy environment file (Azure OpenAI + Elasticsearch credentials).
+# Copy environment file (LLM/embedding provider credentials + Elasticsearch).
 # Required: load_dotenv() reads these at startup; without it the service
-# fails with "Azure OpenAI embedding config missing".
+# fails with a "<provider> embeddings not configured" error.
 # Alternatively, provide the same vars at runtime via --env-file / -e.
 COPY .env .
 

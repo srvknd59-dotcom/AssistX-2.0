@@ -6,6 +6,11 @@ Assistx is a Flask-based retrieval-augmented generation (RAG) service for mcube 
 > RAG + chat UI project (no Docker, no Elasticsearch, one setup script) with a
 > step-by-step explanation of every concept, written as a teaching companion to
 > the full service documented below.
+>
+> **Want the next step up?** See [`enterprise-rag-app/`](./enterprise-rag-app) for the
+> same concepts with a real vector database (Chroma) and a production-shaped
+> FastAPI + React/TypeScript stack, plus [`ONE_DAY_PLAN.md`](./enterprise-rag-app/ONE_DAY_PLAN.md),
+> an hour-by-hour guide to setting it up on Windows in a day.
 
 ## Features
 

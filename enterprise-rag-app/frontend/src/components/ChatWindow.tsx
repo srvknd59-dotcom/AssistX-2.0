@@ -33,7 +33,7 @@ function EmptyState() {
   const suggestions = [
     "How do I pair the GlowMug with the app?",
     "What's the return window for a GlowMug?",
-    "A customer's GlowMug shows a solid red light — what do I check?",
+    "Is the GlowMug dishwasher safe?",
     "Can I work remotely more than 3 days a week?",
   ];
 
@@ -42,7 +42,7 @@ function EmptyState() {
       <div className="text-3xl">🔎</div>
       <div>
         <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
-          Ask a question grounded in your manuals and tickets
+          Ask a question grounded in your ingested documents
         </h3>
         <p className="mt-1 text-xs text-neutral-400">Try one of these:</p>
       </div>

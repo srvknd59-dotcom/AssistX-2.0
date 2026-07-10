@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 export function Header({ health, healthError, onRebuild, rebuilding }: HeaderProps) {
-  const isReady = !!health && health.manuals_indexed > 0;
+  const isReady = !!health && health.chunks_indexed > 0;
 
   return (
     <header className="flex items-center justify-between border-b border-black/10 bg-white px-6 py-3 dark:border-white/10 dark:bg-neutral-900">
@@ -18,10 +18,10 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
         </div>
         <div>
           <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
-            Enterprise RAG Assistant
+            Document Search Assistant
           </h1>
           <p className="text-xs text-neutral-500 dark:text-neutral-400">
-            Northwind Gadgets — support &amp; documentation
+            RAG over your ingested documents
           </p>
         </div>
       </div>

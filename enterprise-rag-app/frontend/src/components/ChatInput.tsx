@@ -29,7 +29,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
-          placeholder="Ask about a manual or a past support ticket…"
+          placeholder="Ask a question about your ingested documents…"
           className="max-h-32 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
         />
         <button

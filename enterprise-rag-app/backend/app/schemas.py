@@ -5,20 +5,22 @@ from pydantic import BaseModel
 
 class HealthResponse(BaseModel):
     status: str
-    manuals_indexed: int
-    tickets_indexed: int
+    chunks_indexed: int
 
 
 class IngestResponse(BaseModel):
-    manuals_indexed: int
-    manual_chunks: int
-    tickets_indexed: int
+    documents_indexed: int
+    chunks_indexed: int
 
 
 class DocumentInfo(BaseModel):
     name: str
-    type: str  # "manual" | "ticket"
     chunk_count: int
+
+
+class UploadResponse(BaseModel):
+    filename: str
+    message: str
 
 
 class ChatStartResponse(BaseModel):
@@ -31,8 +33,7 @@ class ChatSendRequest(BaseModel):
 
 
 class Source(BaseModel):
-    type: str  # "manual" | "ticket"
-    label: str  # filename or "Ticket #123"
+    label: str  # source filename
     snippet: str
     score: float
 

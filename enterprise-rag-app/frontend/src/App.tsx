@@ -42,7 +42,7 @@ function App() {
     <div className="flex h-screen flex-col">
       <Header health={health} healthError={healthError} onRebuild={handleRebuild} rebuilding={rebuilding} />
       <div className="flex min-h-0 flex-1">
-        <Sidebar health={health} documents={documents} />
+        <Sidebar health={health} documents={documents} onUploaded={refresh} />
         <ChatWindow />
       </div>
     </div>

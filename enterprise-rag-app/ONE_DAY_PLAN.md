@@ -1,10 +1,10 @@
 # One-Day Plan: RAG + Enterprise React UI on Windows
 
 Goal for the day: by the end, there is a working app on her Windows laptop —
-a real vector database (Chroma) holding sample product manuals and support
-tickets, a FastAPI backend that retrieves from it and asks an LLM, and a
-React chat UI talking to that backend. No Docker, no external services
-besides the OpenAI API.
+a real vector database (Chroma) holding a set of ingested documents, a
+FastAPI backend that retrieves from it and asks an LLM, and a React chat UI
+talking to that backend. No Docker, no external services besides the
+OpenAI API.
 
 This assumes the code in `enterprise-rag-app/` (this folder) is already on
 the machine — either by cloning this repo or copying the folder over. Total
@@ -100,13 +100,13 @@ window open — this is your backend, and it needs to keep running.
 
 **Checkpoint:** open http://localhost:8000/docs in a browser. This is
 FastAPI's auto-generated interactive API explorer — you should see the
-`/health`, `/ingest`, `/chat/start`, `/chat/send` endpoints listed. Click on
-`POST /ingest`, then "Try it out", then "Execute" — this builds the Chroma
-vector database from the sample manuals and tickets in `backend/data/`.
-You should get back something like:
+`/health`, `/ingest`, `/documents/upload`, `/chat/start`, `/chat/send`
+endpoints listed. Click on `POST /ingest`, then "Try it out", then
+"Execute" — this builds the Chroma vector database from the sample
+documents in `backend/data/documents/`. You should get back something like:
 
 ```json
-{"manuals_indexed": 3, "manual_chunks": 5, "tickets_indexed": 6}
+{"documents_indexed": 3, "chunks_indexed": 5}
 ```
 
 If this fails with an authentication error, double check `.env` has the
@@ -137,8 +137,8 @@ know instead of guessing. Then open `backend/app/rag/pipeline.py` and find
 `SYSTEM_PROMPT` — that's the instruction responsible for this behavior.
 
 **Checkpoint:** she has made at least 3 different `/chat/send` calls through
-the docs UI and can point to which file in `data/manuals/` or which ticket
-in `tickets.json` each answer's sources came from.
+the docs UI and can point to which file in `data/documents/` each answer's
+sources came from.
 
 ## Lunch break
 
@@ -158,11 +158,13 @@ You should see Vite print `Local: http://localhost:5173/`. Open that URL —
 this is the real chat UI, talking to the backend that's been running since
 Hour 2.
 
-**Checkpoint:** the sidebar shows the 3 manuals and the tickets file with
-chunk counts (if it shows "Not indexed yet," go back and run `/ingest` from
-Hour 2 again). Ask a question in the chat box and confirm the answer
-appears with an expandable "Show sources" link, matching what you saw in
-the API docs in Hour 3 — same backend, now with a real UI in front of it.
+**Checkpoint:** the sidebar shows the 3 sample documents with chunk counts
+(if it shows "Not indexed yet," go back and run `/ingest` from Hour 2
+again). Ask a question in the chat box and confirm the answer appears with
+an expandable "Show sources" link, matching what you saw in the API docs in
+Hour 3 — same backend, now with a real UI in front of it. Also try the file
+picker under "Add a document" in the sidebar — upload a small `.txt` file,
+click **Rebuild index**, and confirm it shows up in the document list.
 
 From now on, `.\start-all.ps1` (from the `enterprise-rag-app` folder) will
 launch both windows at once, so this two-terminal dance is only needed once.
@@ -180,8 +182,8 @@ this order:
    `rag-ui-tutorial/rag_core.py`'s `VectorStore` class — same job, real
    database.
 3. `backend/app/rag/pipeline.py` — where retrieval and generation happen.
-   `retrieve()` queries both Chroma collections; `answer()` builds the
-   prompt and calls OpenAI.
+   `retrieve()` queries the Chroma collection; `answer()` builds the prompt
+   and calls OpenAI.
 4. `backend/app/main.py` — the FastAPI routes; each one is a thin wrapper
    around a `pipeline` method.
 5. `frontend/src/hooks/useChat.ts` — how the UI keeps track of messages
@@ -199,16 +201,16 @@ reload) — a small, safe way to confirm she can find and change UI code.
 
 Pick 2-3 of these, in order of how much time is left:
 
-- **Swap the data**: replace the files in `backend/data/manuals/` with
+- **Swap the data**: replace the files in `backend/data/documents/` with
   something she's interested in (a hobby, a school subject, a game's rules)
-  written as `.md`/`.txt` files, and add a few entries to
-  `backend/data/tickets/tickets.json` in the same shape as the samples.
-  Click **Rebuild index** in the UI and ask questions about the new content.
+  written as `.md`/`.txt` files — or use the sidebar's upload button instead
+  of touching the filesystem at all. Click **Rebuild index** in the UI and
+  ask questions about the new content.
 - **Change the branding**: edit `frontend/src/components/Header.tsx` — the
   title, subtitle, and the "RA" logo badge.
 - **Change retrieval behavior**: in `backend/app/config.py`, change
-  `top_k_per_collection` (how many passages come back per collection) and
-  restart the backend; compare answer quality with 1 vs. 5.
+  `top_k` (how many passages come back per question) and restart the
+  backend; compare answer quality with 1 vs. 8.
 - **Add a manual test to the system prompt**: edit `SYSTEM_PROMPT` in
   `pipeline.py` to require a specific answer format (e.g. always end with a
   one-line summary) and see the model follow it.
@@ -266,7 +268,7 @@ below together so she knows what to do if something breaks after you leave.
 ## End-of-day checklist
 
 - [ ] `.\start-all.ps1` opens two windows and both stay running without errors
-- [ ] http://localhost:5173 loads and the sidebar shows indexed manuals + tickets
+- [ ] http://localhost:5173 loads and the sidebar shows the indexed documents
 - [ ] A question about the sample data returns an answer with visible sources
 - [ ] A question outside the sample data gets an honest "I don't know"
 - [ ] She's edited at least one file (data, branding, or a config value) and seen the result

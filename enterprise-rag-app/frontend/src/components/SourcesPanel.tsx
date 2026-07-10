@@ -18,19 +18,10 @@ export function SourcesPanel({ sources }: { sources: Source[] }) {
         <ul className="mt-2 space-y-2">
           {sources.map((source, i) => (
             <li
-              key={`${source.type}-${i}`}
+              key={`${source.label}-${i}`}
               className="rounded-md border border-neutral-200 bg-neutral-50 p-2.5 text-xs dark:border-neutral-700 dark:bg-neutral-800"
             >
               <div className="mb-1 flex items-center gap-2">
-                <span
-                  className={`rounded px-1.5 py-0.5 text-[10px] font-medium uppercase ${
-                    source.type === "manual"
-                      ? "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/50 dark:text-indigo-300"
-                      : "bg-teal-100 text-teal-700 dark:bg-teal-900/50 dark:text-teal-300"
-                  }`}
-                >
-                  {source.type}
-                </span>
                 <span className="font-medium text-neutral-700 dark:text-neutral-200">{source.label}</span>
                 <span className="ml-auto text-neutral-400">score {source.score.toFixed(2)}</span>
               </div>

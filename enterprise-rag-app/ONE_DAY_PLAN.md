@@ -11,6 +11,14 @@ the machine — either by cloning this repo or copying the folder over. Total
 time: roughly 7-8 hours including breaks. Times are guidelines, not a clock
 to watch.
 
+**Running this as a training session for someone else, using Elasticsearch
+instead of Chroma?** Read [`TRAINER_GUIDE.md`](./TRAINER_GUIDE.md) first —
+it's written for the facilitator and covers pacing, what to say, and how
+this plan changes for Hour 2-3 when Elasticsearch is the vector database
+(see [`backend/README_ELASTICSEARCH.md`](./backend/README_ELASTICSEARCH.md)
+for the install steps). The rest of this document works unchanged either
+way — the vector database is a one-line config swap, not a different app.
+
 ---
 
 ## Before the day (15 minutes, do this the night before)

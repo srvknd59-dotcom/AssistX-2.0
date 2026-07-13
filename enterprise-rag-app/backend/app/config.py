@@ -12,9 +12,21 @@ class Settings(BaseSettings):
 
     openai_api_key: str = ""
     embed_model: str = "text-embedding-3-small"
+    embed_dims: int = 1536  # must match EMBED_MODEL's output size (3-small=1536, 3-large=3072)
     chat_model: str = "gpt-4o-mini"
 
+    # "chroma" (embedded, no server, default) or "elasticsearch" (separate server,
+    # matches the production chat_service.py/ingestor.py in this repo). See
+    # backend/README_ELASTICSEARCH.md for local Windows setup.
+    vector_db_backend: str = "chroma"
+
     chroma_persist_dir: str = "./chroma_data"
+
+    es_url: str = "http://localhost:9200"
+    es_index_prefix: str = "rag"
+    es_username: str = ""
+    es_password: str = ""
+
     cors_origin: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     top_k: int = 4

@@ -57,3 +57,10 @@ class ChromaVectorStore:
         ):
             out.append({"text": doc, "metadata": meta, "score": 1 - distance})
         return out
+
+    def list_documents(self, name: str) -> list[dict]:
+        stored = self._collection(name).get()
+        counts: dict[str, int] = {}
+        for meta in stored["metadatas"]:
+            counts[meta["source"]] = counts.get(meta["source"], 0) + 1
+        return [{"name": source, "chunk_count": n} for source, n in counts.items()]

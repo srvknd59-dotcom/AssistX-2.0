@@ -5,9 +5,15 @@ this repo, simplified to one document collection and one similarity search
 instead of Elasticsearch's hybrid BM25 + vector + HyDE + multi-query
 expansion:
 
-    ingest:   read files -> chunk -> embed -> store in Chroma ("documents")
+    ingest:   read files -> chunk -> embed -> store in the vector store
     ask:      embed the question -> retrieve top_k chunks -> ask the LLM,
               grounded in only what was retrieved, with citations
+
+The vector store itself is swappable — Chroma (embedded, default) or
+Elasticsearch (a real server, same engine the production app uses) — chosen
+by VECTOR_DB_BACKEND in .env. Both implement the same reset_collection/add/
+count/query/list_documents interface, so nothing else in this file needs to
+know which one is active.
 """
 
 import uuid
@@ -20,6 +26,20 @@ from app.rag.embeddings import embed_texts
 from app.rag.vector_store import ChromaVectorStore
 
 COLLECTION_NAME = "documents"
+
+
+def build_vector_store():
+    if settings.vector_db_backend == "elasticsearch":
+        from app.rag.vector_store_elasticsearch import ElasticsearchVectorStore
+
+        return ElasticsearchVectorStore(
+            url=settings.es_url,
+            index_prefix=settings.es_index_prefix,
+            dims=settings.embed_dims,
+            username=settings.es_username,
+            password=settings.es_password,
+        )
+    return ChromaVectorStore(str(settings.chroma_path))
 
 SYSTEM_PROMPT = """You are a helpful assistant that answers questions about a set of ingested
 documents, using ONLY the numbered context passages below.
@@ -34,7 +54,7 @@ Rules:
 class RagPipeline:
     def __init__(self) -> None:
         self.client = OpenAI(api_key=settings.openai_api_key)
-        self.store = ChromaVectorStore(str(settings.chroma_path))
+        self.store = build_vector_store()
 
     # -- Ingestion -----------------------------------------------------
 

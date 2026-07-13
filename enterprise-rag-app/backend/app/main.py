@@ -67,13 +67,7 @@ async def upload_document(file: UploadFile) -> UploadResponse:
 
 @app.get("/documents", response_model=list[DocumentInfo])
 def documents() -> list[DocumentInfo]:
-    stored = pipeline.store._collection(COLLECTION_NAME).get()
-
-    counts: dict[str, int] = {}
-    for meta in stored["metadatas"]:
-        counts[meta["source"]] = counts.get(meta["source"], 0) + 1
-
-    return [DocumentInfo(name=name, chunk_count=n) for name, n in counts.items()]
+    return [DocumentInfo(**doc) for doc in pipeline.store.list_documents(COLLECTION_NAME)]
 
 
 @app.post("/chat/start", response_model=ChatStartResponse)

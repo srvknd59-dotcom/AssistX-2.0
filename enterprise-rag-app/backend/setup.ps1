@@ -21,7 +21,7 @@ pip install -r requirements.txt
 if (-not (Test-Path ".env")) {
     Copy-Item ".env.example" ".env"
     Write-Host ""
-    Write-Host "Created .env — open it in Notepad and add your OPENAI_API_KEY, then run .\run.ps1"
+    Write-Host "Created .env - open it in Notepad and add your OPENAI_API_KEY, then run .\run.ps1"
     exit 1
 }
 

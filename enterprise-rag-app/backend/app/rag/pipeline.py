@@ -17,6 +17,7 @@ know which one is active.
 """
 
 import uuid
+from pathlib import Path
 
 from openai import OpenAI
 
@@ -41,6 +42,7 @@ def build_vector_store():
         )
     return ChromaVectorStore(str(settings.chroma_path))
 
+
 SYSTEM_PROMPT = """You are a helpful assistant that answers questions about a set of ingested
 documents, using ONLY the numbered context passages below.
 
@@ -58,9 +60,9 @@ class RagPipeline:
 
     # -- Ingestion -----------------------------------------------------
 
-    def ingest_documents(self) -> dict:
-        """Read every file in data/documents, chunk it, embed it, and (re)build the index."""
-        documents = load_documents(settings.documents_dir)
+    def ingest_documents(self, root: Path | None = None) -> dict:
+        """Read every file in `root` (defaults to data/documents), chunk it, embed it, and (re)build the index."""
+        documents = load_documents(root or settings.documents_dir)
         self.store.reset_collection(COLLECTION_NAME)
 
         ids, texts, metadatas = [], [], []

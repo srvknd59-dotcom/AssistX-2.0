@@ -100,7 +100,8 @@ enterprise-rag-app/
     data/
       documents/          Sample docs to start with (reused from rag-ui-tutorial);
                            uploaded files land here too
-    ingest.py             CLI: build the index without starting the server
+    ingest.py             CLI: build the index without starting the server (supports --root)
+    run_server.py          Starts the API from an editor's Run/Build button (no terminal needed)
     setup.ps1 / run.ps1   Windows one-command setup / start
     README_ELASTICSEARCH.md  How to install + switch to the Elasticsearch backend
   frontend/

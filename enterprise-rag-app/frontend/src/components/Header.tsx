@@ -1,3 +1,4 @@
+import { RefreshCw, Sparkles } from "lucide-react";
 import type { HealthStatus } from "../types";
 
 interface HeaderProps {
@@ -12,35 +13,36 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
 
   return (
     <header
-      className="flex items-center justify-between border-b px-6 py-3.5"
-      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+      className="flex items-center justify-between px-6 py-3.5"
+      style={{ backgroundColor: "var(--surface)", boxShadow: "var(--shadow-sm)" }}
     >
       <div className="flex items-center gap-3">
         <div
-          className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold text-white shadow-sm"
-          style={{ backgroundColor: "var(--accent)" }}
+          className="brand-mark flex h-9 w-9 items-center justify-center rounded-xl text-white"
+          style={{ boxShadow: "var(--shadow-md)" }}
         >
-          RA
+          <Sparkles className="h-4.5 w-4.5" strokeWidth={2.25} />
         </div>
         <div>
-          <h1 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-            Document Search Assistant
+          <h1 className="text-[15px] font-semibold tracking-tight" style={{ color: "var(--ink)" }}>
+            Document Assistant
           </h1>
           <p className="text-xs" style={{ color: "var(--ink-muted)" }}>
-            RAG over your ingested documents
+            Ask questions, grounded in your documents
           </p>
         </div>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <StatusBadge healthError={healthError} isReady={isReady} />
         <button
           onClick={onRebuild}
           disabled={rebuilding}
-          className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+          className="flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50"
           style={{ borderColor: "var(--border)", color: "var(--ink)", backgroundColor: "var(--surface)" }}
         >
-          {rebuilding ? "Rebuilding index…" : "Rebuild index"}
+          <RefreshCw className={`h-3.5 w-3.5 ${rebuilding ? "animate-spin" : ""}`} strokeWidth={2.25} />
+          {rebuilding ? "Syncing…" : "Sync documents"}
         </button>
       </div>
     </header>
@@ -49,12 +51,12 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
 
 function StatusBadge({ healthError, isReady }: { healthError: boolean; isReady: boolean }) {
   if (healthError) {
-    return <Badge tone="critical" label="Backend unreachable" />;
+    return <Badge tone="critical" label="Can't connect" />;
   }
   if (!isReady) {
-    return <Badge tone="warn" label="Index empty — click Rebuild" />;
+    return <Badge tone="warn" label="No documents yet" />;
   }
-  return <Badge tone="good" label="Vector DB ready" />;
+  return <Badge tone="good" label="Ready" />;
 }
 
 function Badge({ tone, label }: { tone: "critical" | "warn" | "good"; label: string }) {

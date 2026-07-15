@@ -72,7 +72,7 @@ ES_INDEX_PREFIX=rag
 
 Leave `ES_USERNAME`/`ES_PASSWORD` blank (security is disabled per step 2).
 
-Then ingest — `POST /ingest`, the UI's **Rebuild index** button, or
+Then ingest — `POST /ingest`, the UI's **Sync documents** button, or
 `python ingest.py` — this writes into an Elasticsearch index named
 `rag_documents` (`{ES_INDEX_PREFIX}_documents`).
 

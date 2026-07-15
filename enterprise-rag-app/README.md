@@ -153,10 +153,10 @@ cd enterprise-rag-app
 .\start-all.ps1
 ```
 
-Then open http://localhost:5173, click **Rebuild index** once (builds the
+Then open http://localhost:5173, click **Sync documents** once (builds the
 Elasticsearch index from `backend/data/documents/`), and start asking
 questions. Use the sidebar's file picker to upload your own `.txt`, `.md`,
-or `.pdf` and click **Rebuild index** again to include it.
+or `.pdf` and click **Sync documents** again to include it.
 
 ## API reference
 

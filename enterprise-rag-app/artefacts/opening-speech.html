@@ -1,0 +1,195 @@
+<title>Opening the Session — Speaker Script</title>
+<style>
+  :root {
+    --bg: #eef2f1;
+    --bg-raised: #ffffff;
+    --ink: #12191b;
+    --ink-muted: #4b5b5e;
+    --border: #d7dedc;
+    --accent: #145c5b;
+    --accent-soft: #e4eeec;
+    --stage: #9a5f08;
+    --stage-soft: #f8ecd8;
+    --shadow: 0 1px 2px rgba(18, 25, 27, 0.06), 0 10px 28px -14px rgba(18, 25, 27, 0.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1416; --bg-raised: #161f21; --ink: #e8eeec; --ink-muted: #9fb0ae;
+      --border: #26332f; --accent: #4fd3c4; --accent-soft: #17302c;
+      --stage: #e0a83e; --stage-soft: #3a2c11;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.65);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1416; --bg-raised: #161f21; --ink: #e8eeec; --ink-muted: #9fb0ae;
+    --border: #26332f; --accent: #4fd3c4; --accent-soft: #17302c;
+    --stage: #e0a83e; --stage-soft: #3a2c11;
+  }
+  :root[data-theme="light"] {
+    --bg: #eef2f1; --bg-raised: #ffffff; --ink: #12191b; --ink-muted: #4b5b5e;
+    --border: #d7dedc; --accent: #145c5b; --accent-soft: #e4eeec;
+    --stage: #9a5f08; --stage-soft: #f8ecd8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+  }
+
+  .masthead { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(26px, 4vw, 34px); margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .subtitle { color: var(--ink-muted); font-size: 14.5px; max-width: 60ch; }
+  .meta-row { display: flex; gap: 16px; font-size: 12.5px; color: var(--ink-muted); margin-top: 4px; }
+  .meta-row span { display: flex; align-items: center; gap: 5px; }
+
+  .stage-direction {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    background: var(--stage-soft);
+    border-left: 3px solid var(--stage);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 14px;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .stage-direction .icon {
+    font-size: 10.5px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--stage); white-space: nowrap; padding-top: 2px;
+  }
+
+  .beat { display: flex; flex-direction: column; gap: 10px; }
+  .beat .beat-label {
+    font-size: 11.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent);
+  }
+  .beat .line {
+    font-size: 19px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+  .beat .line em {
+    font-style: normal;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .beat .aside {
+    font-size: 13px;
+    color: var(--ink-muted);
+    font-style: italic;
+  }
+
+  .card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 22px 24px;
+  }
+
+  .pause-marker {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--ink-muted);
+    background: var(--accent-soft);
+    padding: 3px 9px;
+    border-radius: 999px;
+    margin-top: 4px;
+  }
+
+  footer.foot {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">Training Day &middot; First 15 Minutes</div>
+    <h1>Opening the Session</h1>
+    <div class="subtitle">Read this loosely, not word for word — the point is the beats, not the exact phrasing. Bracketed lines are stage directions, not things to say out loud.</div>
+    <div class="meta-row">
+      <span>~ 3 min to read</span>
+      <span>&middot;</span>
+      <span>Full context: TRAINER_GUIDE.md Part 2</span>
+    </div>
+  </div>
+
+  <div class="stage-direction">
+    <span class="icon">Before you speak</span>
+    <span>Have the finished app already open on screen — <code>localhost:5173</code>, backend and Elasticsearch already running. You're about to show the destination before the map.</span>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">1 &middot; The hook</span>
+      <p class="line">"Before we touch a single line of code, I want to show you something."</p>
+      <p class="aside">[Open the chat UI. Let her type 2-3 questions herself. Don't explain anything yet — just watch.]</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">2 &middot; Why this is different</span>
+      <p class="line">"This is a chatbot. But it's not like the ones you've used before — it doesn't just make things up from whatever it remembers off the internet. It only answers using documents <em>we</em> hand it, and every single time, it shows you exactly which document — which sentence, even — it got that answer from."</p>
+      <span class="pause-marker">Let that land</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">3 &middot; Why it matters</span>
+      <p class="line">"Companies everywhere are trying to build exactly this — a way for people to ask a question and get a trustworthy answer instead of digging through PDFs and old emails. It's called RAG, retrieval-augmented generation, and it's one of the most in-demand skills in tech right now."</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">4 &middot; What today actually is</span>
+      <p class="line">"By the end of today, <em>you</em> will have built this. Not a toy someone else built for you to click through — you're going to install a real database, load real documents into it, connect it to a chat model, and build the interface yourself. All running on this laptop, all yours."</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">5 &middot; How today works</span>
+      <p class="line">"I'm going to explain things, but you're driving the keyboard. Something is going to break today — that's not a maybe. When it does, we're not going to panic or skip past it. We're going to read the error message together and figure out what it's actually telling us, because that's the real skill, not memorizing commands."</p>
+      <p class="line">"There's no wrong pace. If something doesn't click, we stay there. If we run behind, we cut the extra exercises at the end, never the fundamentals."</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="beat">
+      <span class="beat-label">6 &middot; Transition into Hour 1</span>
+      <p class="line">"Ready? Let's start with what's actually happening inside that chat box you just used."</p>
+      <p class="aside">[Move into ONE_DAY_PLAN.md Hour 1 — open HOW_RAG_WORKS.md's open-book-exam analogy and keep asking her to restate each idea back to you.]</p>
+    </div>
+  </div>
+
+  <footer class="foot">
+    <span>enterprise-rag-app/TRAINER_GUIDE.md</span>
+    <span>Adapt freely — the beats matter more than the exact words</span>
+  </footer>
+
+</div>

@@ -1,0 +1,329 @@
+<title>RAG App — System Architecture</title>
+<style>
+  :root {
+    --bg: #eef2f1;
+    --bg-raised: #ffffff;
+    --ink: #12191b;
+    --ink-muted: #4b5b5e;
+    --border: #d7dedc;
+    --accent: #145c5b;
+    --accent-soft: #e4eeec;
+    --accent-2: #6a4fd3;
+    --accent-2-soft: #ece7fb;
+    --good: #1f7a4d;
+    --good-soft: #e5f3ea;
+    --code-bg: #0f1618;
+    --code-ink: #d8f3ea;
+    --code-accent: #6fd9b8;
+    --shadow: 0 1px 2px rgba(18, 25, 27, 0.06), 0 10px 28px -14px rgba(18, 25, 27, 0.22);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1416; --bg-raised: #161f21; --ink: #e8eeec; --ink-muted: #9fb0ae;
+      --border: #26332f; --accent: #4fd3c4; --accent-soft: #17302c;
+      --accent-2: #a996f5; --accent-2-soft: #241d3a;
+      --good: #5fc08c; --good-soft: #163526;
+      --code-bg: #05090a; --code-ink: #d8f3ea; --code-accent: #7fe9c9;
+      --shadow: 0 1px 2px rgba(0,0,0,0.4), 0 10px 28px -14px rgba(0,0,0,0.65);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1416; --bg-raised: #161f21; --ink: #e8eeec; --ink-muted: #9fb0ae;
+    --border: #26332f; --accent: #4fd3c4; --accent-soft: #17302c;
+    --accent-2: #a996f5; --accent-2-soft: #241d3a;
+    --good: #5fc08c; --good-soft: #163526;
+    --code-bg: #05090a; --code-ink: #d8f3ea; --code-accent: #7fe9c9;
+  }
+  :root[data-theme="light"] {
+    --bg: #eef2f1; --bg-raised: #ffffff; --ink: #12191b; --ink-muted: #4b5b5e;
+    --border: #d7dedc; --accent: #145c5b; --accent-soft: #e4eeec;
+    --accent-2: #6a4fd3; --accent-2-soft: #ece7fb;
+    --good: #1f7a4d; --good-soft: #e5f3ea;
+    --code-bg: #0f1618; --code-ink: #d8f3ea; --code-accent: #6fd9b8;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Segoe UI Semibold", "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    line-height: 1.5;
+  }
+  code {
+    font-family: "Cascadia Code", "Cascadia Mono", Consolas, ui-monospace, "SFMono-Regular", monospace;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 0.92em;
+  }
+
+  .page {
+    max-width: 980px;
+    margin: 0 auto;
+    padding: 40px 24px 70px;
+    display: flex;
+    flex-direction: column;
+    gap: 34px;
+  }
+
+  .masthead { display: flex; flex-direction: column; gap: 8px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .eyebrow { font-size: 12px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  h1 { font-size: clamp(26px, 4vw, 36px); margin: 0; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+  .subtitle { color: var(--ink-muted); font-size: 14.5px; max-width: 68ch; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 10px; }
+  .legend .chip {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12.5px; font-weight: 600;
+    padding: 6px 12px; border-radius: 999px;
+    background: var(--bg-raised); border: 1px solid var(--border);
+  }
+  .legend .swatch { width: 10px; height: 10px; border-radius: 3px; flex: 0 0 auto; }
+
+  section > .section-head {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 16px;
+  }
+  section > .section-head h2 {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--ink-muted); margin: 0;
+  }
+  section > .section-head .step-count { font-size: 12px; color: var(--ink-muted); }
+
+  .flow {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    overflow-x: auto;
+    padding-bottom: 6px;
+  }
+  .node {
+    background: var(--bg-raised);
+    border: 1.5px solid var(--border);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 14px 16px;
+    min-width: 152px;
+    flex: 1 1 152px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    position: relative;
+  }
+  .node .step-no {
+    position: absolute; top: -10px; left: 12px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); color: var(--bg-raised);
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .node.query .step-no { background: var(--accent-2); }
+  .node .kind {
+    font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--ink-muted);
+  }
+  .node .title { font-size: 14px; font-weight: 700; }
+  .node .detail { font-size: 12px; color: var(--ink-muted); line-height: 1.4; }
+  .node.hub {
+    background: var(--accent-soft);
+    border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  }
+  .node.hub .title { color: var(--accent); }
+  .node.query.hub {
+    background: var(--accent-2-soft);
+    border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border));
+  }
+  .node.query.hub .title { color: var(--accent-2); }
+  .node.external {
+    border-style: dashed;
+  }
+
+  .connector {
+    flex: 0 0 auto;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink-muted);
+    font-size: 16px;
+  }
+
+  .swap-note {
+    margin-top: 14px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 12.5px;
+    color: var(--ink-muted);
+    background: var(--bg-raised);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .swap-note .mark { color: var(--accent); font-weight: 700; flex: 0 0 auto; }
+
+  .grid-two {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 16px;
+  }
+  .info-card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+  }
+  .info-card h3 {
+    font-size: 13px; font-weight: 700; margin: 0 0 8px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .info-card h3 .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .info-card p { margin: 0; font-size: 13px; color: var(--ink-muted); line-height: 1.55; }
+  .info-card code { display: inline-block; margin-top: 6px; }
+
+  footer.foot {
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+  }
+
+  @media (max-width: 640px) {
+    .flow { flex-direction: column; }
+    .connector { transform: rotate(90deg); width: 100%; height: 24px; }
+  }
+</style>
+
+<div class="page">
+
+  <div class="masthead">
+    <div class="eyebrow">enterprise-rag-app</div>
+    <h1>System Architecture</h1>
+    <div class="subtitle">Two things happen in this system: documents get <strong>ingested</strong> once (or whenever new ones are added), and questions get <strong>answered</strong> every time someone asks one. Both flows meet at the same vector store.</div>
+    <div class="legend">
+      <span class="chip"><span class="swatch" style="background: var(--accent)"></span>Ingestion flow</span>
+      <span class="chip"><span class="swatch" style="background: var(--accent-2)"></span>Query flow</span>
+      <span class="chip"><span class="swatch" style="background: var(--ink-muted); border-radius:50%"></span>Dashed = external service</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="section-head">
+      <h2>Ingestion — runs once per document set</h2>
+      <span class="step-count">POST /ingest &nbsp;·&nbsp; python ingest.py</span>
+    </div>
+    <div class="flow">
+      <div class="node">
+        <span class="step-no">1</span>
+        <span class="kind">Source</span>
+        <span class="title">Documents</span>
+        <span class="detail">.txt / .md / .pdf in data/documents, or uploaded from the UI</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node">
+        <span class="step-no">2</span>
+        <span class="kind">chunking.py</span>
+        <span class="title">Chunk</span>
+        <span class="detail">Split into ~180-word overlapping passages</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node external">
+        <span class="step-no">3</span>
+        <span class="kind">OpenAI API</span>
+        <span class="title">Embed</span>
+        <span class="detail">text-embedding-3-small &rarr; 1536-dim vector per chunk</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node hub">
+        <span class="step-no">4</span>
+        <span class="kind">vector_store*.py</span>
+        <span class="title">Elasticsearch</span>
+        <span class="detail"><code>rag_documents</code> index &middot; dense_vector field</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head">
+      <h2>Query &amp; answer — runs on every chat message</h2>
+      <span class="step-count">POST /chat/send</span>
+    </div>
+    <div class="flow">
+      <div class="node query">
+        <span class="step-no">1</span>
+        <span class="kind">React UI &middot; :5173</span>
+        <span class="title">Question</span>
+        <span class="detail">Typed in the chat box, sent with session_id</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node query external">
+        <span class="step-no">2</span>
+        <span class="kind">OpenAI API</span>
+        <span class="title">Embed question</span>
+        <span class="detail">Same embedding model as ingestion</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node query hub">
+        <span class="step-no">3</span>
+        <span class="kind">vector_store*.py</span>
+        <span class="title">kNN search</span>
+        <span class="detail">Top-k nearest chunks by cosine similarity</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node query">
+        <span class="step-no">4</span>
+        <span class="kind">pipeline.py</span>
+        <span class="title">Build prompt</span>
+        <span class="detail">Numbered context + question + system rules</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node query external">
+        <span class="step-no">5</span>
+        <span class="kind">OpenAI API</span>
+        <span class="title">Generate</span>
+        <span class="detail">gpt-4o-mini answers only from context, cites [1] [2]</span>
+      </div>
+      <div class="connector">&rarr;</div>
+      <div class="node query">
+        <span class="step-no">6</span>
+        <span class="kind">React UI</span>
+        <span class="title">Answer + sources</span>
+        <span class="detail">Rendered with expandable citations</span>
+      </div>
+    </div>
+    <div class="swap-note">
+      <span class="mark">&#8942;</span>
+      <span><code>VECTOR_DB_BACKEND</code> in <code>backend/.env</code> swaps step 4/3's Elasticsearch node for Chroma (a local on-disk database, no server) — everything else in both flows is identical either way.</span>
+    </div>
+  </section>
+
+  <section>
+    <div class="section-head"><h2>Processes running at once</h2></div>
+    <div class="grid-two">
+      <div class="info-card">
+        <h3><span class="dot" style="background: var(--accent-2)"></span>React frontend &middot; :5173</h3>
+        <p>Vite dev server. Chat UI, document sidebar, upload widget.<br><code>npm run dev</code></p>
+      </div>
+      <div class="info-card">
+        <h3><span class="dot" style="background: var(--accent)"></span>FastAPI backend &middot; :8000</h3>
+        <p>Routes + RagPipeline. Talks to OpenAI and the vector store.<br><code>uvicorn app.main:app --reload</code></p>
+      </div>
+      <div class="info-card">
+        <h3><span class="dot" style="background: var(--good)"></span>Elasticsearch &middot; :9200</h3>
+        <p>Separate JVM process, started on its own. Security disabled for local-only dev.<br><code>elasticsearch.bat</code></p>
+      </div>
+      <div class="info-card">
+        <h3><span class="dot" style="background: var(--ink-muted)"></span>OpenAI API &middot; cloud</h3>
+        <p>The only thing that isn't local — embeddings + chat completions, billed per call.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span>enterprise-rag-app/README.md &middot; backend/README_ELASTICSEARCH.md</span>
+    <span>No Docker &middot; Windows, no admin rights beyond installers</span>
+  </footer>
+
+</div>

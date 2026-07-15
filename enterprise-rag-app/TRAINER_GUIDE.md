@@ -164,7 +164,8 @@ Everything referenced in this guide, in one place:
 | `TRAINER_GUIDE.md` | this folder (this file) | Your facilitation script |
 | `README.md` | this folder | Architecture overview, points here from both other docs |
 | `backend/README_ELASTICSEARCH.md` | `backend/` | Exact Elasticsearch install/config steps for Hour 2-3 |
-| Cheat-sheet (one-page visual) | sent separately as an artefact link | Commands + architecture diagram + troubleshooting, for a second screen |
+| `artefacts/opening-speech.html` | `artefacts/` | Speaker script for the first 15 minutes — open in a browser |
+| `artefacts/architecture-diagram.html` | `artefacts/` | Visual ingestion/query flow diagram — open in a browser |
 | This repo, on her machine | — | The actual code |
 | Your tested OpenAI API key | — | Nothing works without it |
 

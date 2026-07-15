@@ -1,7 +1,92 @@
 @import "tailwindcss";
+@plugin "@tailwindcss/typography";
 
 :root {
   color-scheme: light dark;
+
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --ink: #12141c;
+  --ink-muted: #656b7a;
+  --border: #e4e7ec;
+
+  --accent: #4338ca;
+  --accent-hover: #3730a3;
+  --accent-soft: #eef0fd;
+  --accent-ink: #3730a3;
+
+  --good: #15803d;
+  --good-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --critical: #b91c1c;
+  --critical-soft: #fee2e2;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b0d12;
+    --surface: #14161d;
+    --surface-2: #101218;
+    --ink: #eef0f4;
+    --ink-muted: #9aa1b1;
+    --border: #262a35;
+
+    --accent: #8b85f5;
+    --accent-hover: #a29cf8;
+    --accent-soft: #211f3d;
+    --accent-ink: #c7c2fb;
+
+    --good: #4ade80;
+    --good-soft: #0f2b1c;
+    --warn: #e0a83e;
+    --warn-soft: #3a2c11;
+    --critical: #f87171;
+    --critical-soft: #3a1815;
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b0d12;
+  --surface: #14161d;
+  --surface-2: #101218;
+  --ink: #eef0f4;
+  --ink-muted: #9aa1b1;
+  --border: #262a35;
+
+  --accent: #8b85f5;
+  --accent-hover: #a29cf8;
+  --accent-soft: #211f3d;
+  --accent-ink: #c7c2fb;
+
+  --good: #4ade80;
+  --good-soft: #0f2b1c;
+  --warn: #e0a83e;
+  --warn-soft: #3a2c11;
+  --critical: #f87171;
+  --critical-soft: #3a1815;
+}
+
+:root[data-theme="light"] {
+  --bg: #f5f6f9;
+  --surface: #ffffff;
+  --surface-2: #fafbfc;
+  --ink: #12141c;
+  --ink-muted: #656b7a;
+  --border: #e4e7ec;
+
+  --accent: #4338ca;
+  --accent-hover: #3730a3;
+  --accent-soft: #eef0fd;
+  --accent-ink: #3730a3;
+
+  --good: #15803d;
+  --good-soft: #dcfce7;
+  --warn: #b45309;
+  --warn-soft: #fef3c7;
+  --critical: #b91c1c;
+  --critical-soft: #fee2e2;
 }
 
 html, body, #root {
@@ -11,15 +96,8 @@ html, body, #root {
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background-color: #f4f5f7;
-  color: #17181c;
-}
-
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: #0e0f12;
-    color: #e7e8ea;
-  }
+  background-color: var(--bg);
+  color: var(--ink);
 }
 
 * {
@@ -34,4 +112,35 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: rgba(120, 120, 130, 0.4);
   border-radius: 8px;
+}
+
+textarea::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.75;
+}
+
+/* Markdown answer content */
+.answer-prose :where(p, ul, ol, table, pre, blockquote):not(:first-child) {
+  margin-top: 0.85em;
+}
+.answer-prose :where(p, ul, ol, table, pre, blockquote):not(:last-child) {
+  margin-bottom: 0.85em;
+}
+.answer-prose table {
+  display: block;
+  overflow-x: auto;
+  width: max-content;
+  max-width: 100%;
+}
+.answer-prose code {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-radius: 4px;
+  padding: 0.1em 0.4em;
+  font-size: 0.9em;
+}
+.answer-prose pre code {
+  background: none;
+  color: inherit;
+  padding: 0;
 }

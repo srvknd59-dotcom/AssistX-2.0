@@ -1,35 +1,83 @@
+import { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import type { ChatMessage } from "../types";
 import { SourcesPanel } from "./SourcesPanel";
 
 export function MessageBubble({ message }: { message: ChatMessage }) {
   const isUser = message.role === "user";
 
-  return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
-      <div className={`max-w-[75%] ${isUser ? "items-end" : "items-start"} flex flex-col`}>
+  if (isUser) {
+    return (
+      <div className="flex justify-end">
         <div
-          className={`rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-            isUser
-              ? "rounded-br-sm bg-indigo-600 text-white"
-              : "rounded-bl-sm border border-neutral-200 bg-white text-neutral-800 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-100"
-          }`}
+          className="max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm leading-relaxed text-white"
+          style={{ backgroundColor: "var(--accent)" }}
         >
-          {message.pending ? <TypingDots /> : message.content}
+          {message.content}
         </div>
-        {!isUser && message.sources && <SourcesPanel sources={message.sources} />}
       </div>
+    );
+  }
+
+  return (
+    <div className="flex gap-3">
+      <div
+        className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+        style={{ backgroundColor: "var(--accent)" }}
+      >
+        AI
+      </div>
+      <div className="min-w-0 flex-1">
+        {message.pending ? (
+          <TypingDots />
+        ) : (
+          <>
+            <AnswerMarkdown content={message.content} />
+            {message.sources && <SourcesPanel sources={message.sources} />}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AnswerMarkdown({ content }: { content: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    await navigator.clipboard.writeText(content);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+
+  return (
+    <div className="group/answer">
+      <div
+        className="answer-prose prose prose-sm dark:prose-invert max-w-none text-[15px] leading-relaxed"
+        style={{ color: "var(--ink)" }}
+      >
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+      </div>
+      <button
+        onClick={copy}
+        className="mt-1.5 rounded px-1.5 py-0.5 text-[11px] font-medium opacity-0 transition-opacity group-hover/answer:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+        style={{ color: "var(--ink-muted)" }}
+      >
+        {copied ? "Copied" : "Copy"}
+      </button>
     </div>
   );
 }
 
 function TypingDots() {
   return (
-    <span className="flex gap-1 py-1">
+    <span className="flex gap-1 py-1.5">
       {[0, 1, 2].map((i) => (
         <span
           key={i}
-          className="h-1.5 w-1.5 animate-bounce rounded-full bg-neutral-400"
-          style={{ animationDelay: `${i * 0.12}s` }}
+          className="h-1.5 w-1.5 animate-bounce rounded-full"
+          style={{ backgroundColor: "var(--ink-muted)", animationDelay: `${i * 0.12}s` }}
         />
       ))}
     </span>

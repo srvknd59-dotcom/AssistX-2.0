@@ -11,16 +11,22 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
   const isReady = !!health && health.chunks_indexed > 0;
 
   return (
-    <header className="flex items-center justify-between border-b border-black/10 bg-white px-6 py-3 dark:border-white/10 dark:bg-neutral-900">
+    <header
+      className="flex items-center justify-between border-b px-6 py-3.5"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+    >
       <div className="flex items-center gap-3">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-600 text-sm font-semibold text-white">
+        <div
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-sm font-semibold text-white shadow-sm"
+          style={{ backgroundColor: "var(--accent)" }}
+        >
           RA
         </div>
         <div>
-          <h1 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+          <h1 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
             Document Search Assistant
           </h1>
-          <p className="text-xs text-neutral-500 dark:text-neutral-400">
+          <p className="text-xs" style={{ color: "var(--ink-muted)" }}>
             RAG over your ingested documents
           </p>
         </div>
@@ -31,7 +37,8 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
         <button
           onClick={onRebuild}
           disabled={rebuilding}
-          className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 hover:bg-neutral-50 disabled:opacity-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-200 dark:hover:bg-neutral-700"
+          className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50"
+          style={{ borderColor: "var(--border)", color: "var(--ink)", backgroundColor: "var(--surface)" }}
         >
           {rebuilding ? "Rebuilding index…" : "Rebuild index"}
         </button>
@@ -42,24 +49,22 @@ export function Header({ health, healthError, onRebuild, rebuilding }: HeaderPro
 
 function StatusBadge({ healthError, isReady }: { healthError: boolean; isReady: boolean }) {
   if (healthError) {
-    return <Badge color="red" label="Backend unreachable" />;
+    return <Badge tone="critical" label="Backend unreachable" />;
   }
   if (!isReady) {
-    return <Badge color="amber" label="Index empty — click Rebuild" />;
+    return <Badge tone="warn" label="Index empty — click Rebuild" />;
   }
-  return <Badge color="green" label="Vector DB ready" />;
+  return <Badge tone="good" label="Vector DB ready" />;
 }
 
-function Badge({ color, label }: { color: "red" | "amber" | "green"; label: string }) {
-  const colors = {
-    red: "bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300",
-    amber: "bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300",
-    green: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
-  }[color];
-
+function Badge({ tone, label }: { tone: "critical" | "warn" | "good"; label: string }) {
   return (
-    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${colors}`}>
-      ● {label}
+    <span
+      className="flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium"
+      style={{ backgroundColor: `var(--${tone}-soft)`, color: `var(--${tone})` }}
+    >
+      <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: `var(--${tone})` }} />
+      {label}
     </span>
   );
 }

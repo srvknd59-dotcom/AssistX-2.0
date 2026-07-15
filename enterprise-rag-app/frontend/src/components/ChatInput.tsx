@@ -22,25 +22,38 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   };
 
   return (
-    <div className="border-t border-black/10 bg-white p-4 dark:border-white/10 dark:bg-neutral-900">
-      <div className="flex items-end gap-2 rounded-xl border border-neutral-300 bg-neutral-50 p-2 focus-within:border-indigo-500 dark:border-neutral-700 dark:bg-neutral-800">
+    <div className="border-t p-4" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}>
+      <div
+        className="flex items-end gap-2 rounded-xl border p-2 shadow-sm transition-colors focus-within:shadow-md"
+        style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}
+      >
         <textarea
           value={value}
           onChange={(e) => setValue(e.target.value)}
           onKeyDown={handleKeyDown}
           rows={1}
           placeholder="Ask a question about your ingested documents…"
-          className="max-h-32 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm text-neutral-900 outline-none placeholder:text-neutral-400 dark:text-neutral-100"
+          className="max-h-32 flex-1 resize-none bg-transparent px-2 py-1.5 text-sm outline-none"
+          style={{ color: "var(--ink)" }}
         />
         <button
           onClick={submit}
           disabled={disabled || !value.trim()}
-          className="shrink-0 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+          className="shrink-0 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+          style={{ backgroundColor: "var(--accent)" }}
+          onMouseEnter={(e) => {
+            if (!disabled && value.trim()) e.currentTarget.style.backgroundColor = "var(--accent-hover)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = "var(--accent)";
+          }}
         >
           Send
         </button>
       </div>
-      <p className="mt-1.5 text-[11px] text-neutral-400">Enter to send · Shift+Enter for a new line</p>
+      <p className="mt-1.5 text-[11px]" style={{ color: "var(--ink-muted)" }}>
+        Enter to send · Shift+Enter for a new line
+      </p>
     </div>
   );
 }

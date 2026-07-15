@@ -12,19 +12,26 @@ export function ChatWindow() {
   }, [messages]);
 
   return (
-    <div className="flex min-w-0 flex-1 flex-col">
-      <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto p-6">
-        {messages.length === 0 && <EmptyState />}
-        {messages.map((message) => (
-          <MessageBubble key={message.id} message={message} />
-        ))}
-        {error && (
-          <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-900 dark:bg-red-900/30 dark:text-red-300">
-            {error}
-          </div>
-        )}
+    <div className="flex min-w-0 flex-1 flex-col" style={{ backgroundColor: "var(--bg)" }}>
+      <div ref={scrollRef} className="flex-1 overflow-y-auto">
+        <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
+          {messages.length === 0 && <EmptyState />}
+          {messages.map((message) => (
+            <MessageBubble key={message.id} message={message} />
+          ))}
+          {error && (
+            <div
+              className="rounded-lg border px-3 py-2 text-xs"
+              style={{ borderColor: "var(--critical)", backgroundColor: "var(--critical-soft)", color: "var(--critical)" }}
+            >
+              {error}
+            </div>
+          )}
+        </div>
       </div>
-      <ChatInput onSend={sendMessage} disabled={isSending} />
+      <div className="mx-auto w-full max-w-3xl">
+        <ChatInput onSend={sendMessage} disabled={isSending} />
+      </div>
     </div>
   );
 }
@@ -38,19 +45,27 @@ function EmptyState() {
   ];
 
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-      <div className="text-3xl">🔎</div>
+    <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
+      <div
+        className="flex h-12 w-12 items-center justify-center rounded-2xl text-xl"
+        style={{ backgroundColor: "var(--accent-soft)" }}
+      >
+        🔎
+      </div>
       <div>
-        <h3 className="text-sm font-semibold text-neutral-700 dark:text-neutral-200">
+        <h3 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
           Ask a question grounded in your ingested documents
         </h3>
-        <p className="mt-1 text-xs text-neutral-400">Try one of these:</p>
+        <p className="mt-1 text-xs" style={{ color: "var(--ink-muted)" }}>
+          Try one of these:
+        </p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {suggestions.map((s) => (
           <span
             key={s}
-            className="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500 dark:border-neutral-700 dark:text-neutral-400"
+            className="rounded-full border px-3 py-1 text-xs"
+            style={{ borderColor: "var(--border)", color: "var(--ink-muted)" }}
           >
             {s}
           </span>

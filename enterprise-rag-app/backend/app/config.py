@@ -49,5 +49,12 @@ class Settings(BaseSettings):
             base = BACKEND_ROOT / base
         return base / "documents"
 
+    @property
+    def image_cache_dir(self) -> Path:
+        base = Path(self.data_dir)
+        if not base.is_absolute():
+            base = BACKEND_ROOT / base
+        return base / "image_cache"
+
 
 settings = Settings()

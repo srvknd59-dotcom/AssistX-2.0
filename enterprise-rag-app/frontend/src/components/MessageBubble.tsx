@@ -1,3 +1,4 @@
+import { Check, Copy, Sparkles } from "lucide-react";
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -23,10 +24,10 @@ export function MessageBubble({ message }: { message: ChatMessage }) {
   return (
     <div className="flex gap-3">
       <div
-        className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-        style={{ backgroundColor: "var(--accent)" }}
+        className="brand-mark mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-white"
+        style={{ boxShadow: "var(--shadow-sm)" }}
       >
-        AI
+        <Sparkles className="h-3.5 w-3.5" strokeWidth={2.25} />
       </div>
       <div className="min-w-0 flex-1">
         {message.pending ? (
@@ -61,9 +62,10 @@ function AnswerMarkdown({ content }: { content: string }) {
       </div>
       <button
         onClick={copy}
-        className="mt-1.5 rounded px-1.5 py-0.5 text-[11px] font-medium opacity-0 transition-opacity group-hover/answer:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
+        className="mt-1.5 flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium opacity-0 transition-opacity group-hover/answer:opacity-100 hover:bg-black/5 dark:hover:bg-white/10"
         style={{ color: "var(--ink-muted)" }}
       >
+        {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
         {copied ? "Copied" : "Copy"}
       </button>
     </div>

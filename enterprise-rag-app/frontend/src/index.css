@@ -12,6 +12,7 @@
   --border: #e4e7ec;
 
   --accent: #4338ca;
+  --accent-2: #9333ea;
   --accent-hover: #3730a3;
   --accent-soft: #eef0fd;
   --accent-ink: #3730a3;
@@ -22,6 +23,15 @@
   --warn-soft: #fef3c7;
   --critical: #b91c1c;
   --critical-soft: #fee2e2;
+
+  --file-pdf: #dc2626;
+  --file-pdf-soft: #fee2e2;
+  --file-doc: #2563eb;
+  --file-doc-soft: #dbeafe;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.06);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -34,6 +44,7 @@
     --border: #262a35;
 
     --accent: #8b85f5;
+    --accent-2: #c084fc;
     --accent-hover: #a29cf8;
     --accent-soft: #211f3d;
     --accent-ink: #c7c2fb;
@@ -44,6 +55,15 @@
     --warn-soft: #3a2c11;
     --critical: #f87171;
     --critical-soft: #3a1815;
+
+    --file-pdf: #f87171;
+    --file-pdf-soft: #3a1815;
+    --file-doc: #60a5fa;
+    --file-doc-soft: #17253d;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
   }
 }
 
@@ -56,6 +76,7 @@
   --border: #262a35;
 
   --accent: #8b85f5;
+  --accent-2: #c084fc;
   --accent-hover: #a29cf8;
   --accent-soft: #211f3d;
   --accent-ink: #c7c2fb;
@@ -66,6 +87,15 @@
   --warn-soft: #3a2c11;
   --critical: #f87171;
   --critical-soft: #3a1815;
+
+  --file-pdf: #f87171;
+  --file-pdf-soft: #3a1815;
+  --file-doc: #60a5fa;
+  --file-doc-soft: #17253d;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5), 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 :root[data-theme="light"] {
@@ -77,6 +107,7 @@
   --border: #e4e7ec;
 
   --accent: #4338ca;
+  --accent-2: #9333ea;
   --accent-hover: #3730a3;
   --accent-soft: #eef0fd;
   --accent-ink: #3730a3;
@@ -87,6 +118,15 @@
   --warn-soft: #fef3c7;
   --critical: #b91c1c;
   --critical-soft: #fee2e2;
+
+  --file-pdf: #dc2626;
+  --file-pdf-soft: #fee2e2;
+  --file-doc: #2563eb;
+  --file-doc-soft: #dbeafe;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow-lg: 0 12px 32px rgba(16, 24, 40, 0.12), 0 2px 6px rgba(16, 24, 40, 0.06);
 }
 
 html, body, #root {
@@ -117,6 +157,10 @@ body {
 textarea::placeholder {
   color: var(--ink-muted);
   opacity: 0.75;
+}
+
+.brand-mark {
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
 }
 
 /* Markdown answer content */

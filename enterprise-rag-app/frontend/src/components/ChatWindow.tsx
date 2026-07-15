@@ -1,3 +1,4 @@
+import { Search } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useChat } from "../hooks/useChat";
 import { ChatInput } from "./ChatInput";
@@ -15,7 +16,7 @@ export function ChatWindow() {
     <div className="flex min-w-0 flex-1 flex-col" style={{ backgroundColor: "var(--bg)" }}>
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-3xl flex-col gap-6 p-6">
-          {messages.length === 0 && <EmptyState />}
+          {messages.length === 0 && <EmptyState onPick={sendMessage} />}
           {messages.map((message) => (
             <MessageBubble key={message.id} message={message} />
           ))}
@@ -36,7 +37,7 @@ export function ChatWindow() {
   );
 }
 
-function EmptyState() {
+function EmptyState({ onPick }: { onPick: (text: string) => void }) {
   const suggestions = [
     "How do I pair the GlowMug with the app?",
     "What's the return window for a GlowMug?",
@@ -47,28 +48,31 @@ function EmptyState() {
   return (
     <div className="flex h-[60vh] flex-col items-center justify-center gap-4 text-center">
       <div
-        className="flex h-12 w-12 items-center justify-center rounded-2xl text-xl"
-        style={{ backgroundColor: "var(--accent-soft)" }}
+        className="brand-mark flex h-12 w-12 items-center justify-center rounded-2xl text-white"
+        style={{ boxShadow: "var(--shadow-md)" }}
       >
-        🔎
+        <Search className="h-5 w-5" strokeWidth={2} />
       </div>
       <div>
-        <h3 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-          Ask a question grounded in your ingested documents
+        <h3 className="text-base font-semibold" style={{ color: "var(--ink)" }}>
+          Ask anything about your documents
         </h3>
         <p className="mt-1 text-xs" style={{ color: "var(--ink-muted)" }}>
-          Try one of these:
+          Every answer is grounded and cited. Try one of these:
         </p>
       </div>
-      <div className="flex flex-wrap justify-center gap-2">
+      <div className="flex max-w-lg flex-wrap justify-center gap-2">
         {suggestions.map((s) => (
-          <span
+          <button
             key={s}
-            className="rounded-full border px-3 py-1 text-xs"
+            onClick={() => onPick(s)}
+            className="rounded-full border px-3 py-1.5 text-xs transition-colors hover:border-transparent hover:text-white"
             style={{ borderColor: "var(--border)", color: "var(--ink-muted)" }}
+            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "var(--accent)")}
+            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           >
             {s}
-          </span>
+          </button>
         ))}
       </div>
     </div>

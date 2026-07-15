@@ -43,6 +43,7 @@ class ElasticsearchVectorStore:
                     "chunk_index": {"type": "integer"},
                     "content_type": {"type": "keyword"},
                     "page": {"type": "integer"},
+                    "image_id": {"type": "keyword"},
                     "embedding": {
                         "type": "dense_vector",
                         "dims": self.dims,
@@ -95,7 +96,7 @@ class ElasticsearchVectorStore:
                 "num_candidates": max(top_k * 10, 50),
             },
             size=top_k,
-            source=["text", "source", "chunk_index", "content_type", "page"],
+            source=["text", "source", "chunk_index", "content_type", "page", "image_id"],
         )
 
         return [
@@ -106,6 +107,7 @@ class ElasticsearchVectorStore:
                     "chunk_index": hit["_source"].get("chunk_index"),
                     "content_type": hit["_source"].get("content_type"),
                     "page": hit["_source"].get("page"),
+                    "image_id": hit["_source"].get("image_id"),
                 },
                 "score": hit["_score"],
             }

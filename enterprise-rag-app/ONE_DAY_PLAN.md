@@ -188,13 +188,13 @@ You should see Vite print `Local: http://localhost:5173/`. Open that URL —
 this is the real chat UI, talking to the backend that's been running since
 Hour 2.
 
-**Checkpoint:** the sidebar shows the 3 sample documents with chunk counts
-(if it shows "Not indexed yet," go back and run `/ingest` from Hour 2
-again). Ask a question in the chat box and confirm the answer appears with
-an expandable "Show sources" link, matching what you saw in the API docs in
-Hour 3 — same backend, now with a real UI in front of it. Also try the file
-picker under "Add a document" in the sidebar — upload a small `.txt` file,
-click **Rebuild index**, and confirm it shows up in the document list.
+**Checkpoint:** the sidebar shows the 3 sample documents (if it shows "No
+documents yet," go back and run `/ingest` from Hour 2 again). Ask a
+question in the chat box and confirm the answer appears with an expandable
+"Show sources" link, matching what you saw in the API docs in Hour 3 — same
+backend, now with a real UI in front of it. Also try the upload zone in the
+sidebar — drop in a small `.txt` file (or click it to browse), click **Sync
+documents**, and confirm it shows up in the document list.
 
 From now on, `.\start-all.ps1` (from the `enterprise-rag-app` folder) will
 launch both windows at once, so this two-terminal dance is only needed once.
@@ -234,7 +234,7 @@ Pick 2-3 of these, in order of how much time is left:
 - **Swap the data**: replace the files in `backend/data/documents/` with
   something she's interested in (a hobby, a school subject, a game's rules)
   written as `.md`/`.txt` files — or use the sidebar's upload button instead
-  of touching the filesystem at all. Click **Rebuild index** in the UI and
+  of touching the filesystem at all. Click **Sync documents** in the UI and
   ask questions about the new content.
 - **Change the branding**: edit `frontend/src/components/Header.tsx` — the
   title, subtitle, and the "RA" logo badge.

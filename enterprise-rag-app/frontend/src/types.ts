@@ -6,6 +6,7 @@ export interface Source {
   score: number;
   content_type: ContentType;
   page: number | null;
+  image_id: string | null;
 }
 
 export interface ChatMessage {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { imageUrl } from "../api/client";
 import type { ContentType, Source } from "../types";
 
 const TYPE_LABEL: Record<ContentType, string> = {
@@ -90,9 +91,27 @@ function SourceSnippet({ source }: { source: Source }) {
   if (source.content_type === "image") {
     const caption = source.snippet.replace(/^\[Image[^\]]*\]:\s*/, "");
     return (
-      <p className="line-clamp-3 italic" style={{ color: "var(--ink-muted)" }}>
-        {caption}
-      </p>
+      <div className="flex gap-3">
+        {source.image_id && (
+          <a
+            href={imageUrl(source.image_id)}
+            target="_blank"
+            rel="noreferrer"
+            className="shrink-0 overflow-hidden rounded-md border"
+            style={{ borderColor: "var(--border)" }}
+            title="Open full size"
+          >
+            <img
+              src={imageUrl(source.image_id)}
+              alt={caption || "Extracted image"}
+              className="h-16 w-16 object-cover transition-transform hover:scale-105"
+            />
+          </a>
+        )}
+        <p className="line-clamp-3 italic" style={{ color: "var(--ink-muted)" }}>
+          {caption}
+        </p>
+      </div>
     );
   }
 

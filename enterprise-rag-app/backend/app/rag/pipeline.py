@@ -17,6 +17,8 @@ production ingestor.py uses, just for one document type instead of a
 manuals/diagrams split.
 """
 
+import hashlib
+import shutil
 import uuid
 from collections import defaultdict
 from pathlib import Path
@@ -67,6 +69,9 @@ class RagPipeline:
         units = load_documents(root or settings.documents_dir)
         self.store.reset_collection(COLLECTION_NAME)
 
+        shutil.rmtree(settings.image_cache_dir, ignore_errors=True)
+        settings.image_cache_dir.mkdir(parents=True, exist_ok=True)
+
         ids, texts, metadatas = [], [], []
         chunk_index_by_source: dict[str, int] = defaultdict(int)
         images_captioned_by_source: dict[str, int] = defaultdict(int)
@@ -74,7 +79,7 @@ class RagPipeline:
         images_captioned = 0
 
         for unit in units:
-            for chunk_text_value, content_type in self._render_unit(unit, images_captioned_by_source):
+            for chunk_text_value, content_type, extra in self._render_unit(unit, images_captioned_by_source):
                 if content_type == "table":
                     tables_found += 1
                 elif content_type == "image":
@@ -91,6 +96,7 @@ class RagPipeline:
                         "chunk_index": idx,
                         "content_type": content_type,
                         "page": unit.page,
+                        **extra,
                     }
                 )
 
@@ -106,13 +112,13 @@ class RagPipeline:
         }
 
     def _render_unit(self, unit: ContentUnit, images_captioned_by_source: dict[str, int]):
-        """Yield (text, content_type) pairs for one content unit."""
+        """Yield (text, content_type, extra_metadata) tuples for one content unit."""
         if unit.unit_type == "text":
             for chunk in chunk_text(unit.text, settings.chunk_size_words, settings.chunk_overlap_words):
-                yield chunk, "text"
+                yield chunk, "text", {}
 
         elif unit.unit_type == "table":
-            yield unit.text, "table"
+            yield unit.text, "table", {}
 
         elif unit.unit_type == "image":
             if not settings.caption_images:
@@ -123,8 +129,12 @@ class RagPipeline:
             if not caption:
                 return
             images_captioned_by_source[unit.source] += 1
+
+            image_id = hashlib.sha1(unit.image_bytes).hexdigest()[:16]
+            (settings.image_cache_dir / f"{image_id}.png").write_bytes(unit.image_bytes)
+
             page_note = f" (page {unit.page})" if unit.page else ""
-            yield f"[Image{page_note}]: {caption}", "image"
+            yield f"[Image{page_note}]: {caption}", "image", {"image_id": image_id}
 
     def counts(self) -> dict:
         by_type = self.store.count_by_content_type(COLLECTION_NAME)
@@ -148,6 +158,7 @@ class RagPipeline:
                 "score": hit["score"],
                 "content_type": hit["metadata"].get("content_type") or "text",
                 "page": hit["metadata"].get("page"),
+                "image_id": hit["metadata"].get("image_id"),
             }
             for hit in hits
         ]

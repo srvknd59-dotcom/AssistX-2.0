@@ -3,8 +3,11 @@
 Run with: uvicorn app.main:app --reload --port 8000
 """
 
+import re
+
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from app.config import settings
 from app.rag.chunking import SUPPORTED_EXTENSIONS
@@ -32,6 +35,11 @@ app.add_middleware(
 )
 
 pipeline = RagPipeline()
+
+# image_id is always a 16-char lowercase hex sha1 prefix (see pipeline.py) -
+# this pattern is what keeps the filesystem lookup below safe from path
+# traversal, since nothing outside [0-9a-f]{16} is ever accepted.
+IMAGE_ID_PATTERN = re.compile(r"^[0-9a-f]{16}$")
 
 # In-memory session store. This is a teaching project: the production
 # chat_service.py in this repo persists sessions/history to MariaDB instead.
@@ -68,6 +76,16 @@ async def upload_document(file: UploadFile) -> UploadResponse:
 @app.get("/documents", response_model=list[DocumentInfo])
 def documents() -> list[DocumentInfo]:
     return [DocumentInfo(**doc) for doc in pipeline.store.list_documents(COLLECTION_NAME)]
+
+
+@app.get("/images/{image_id}")
+def get_image(image_id: str) -> FileResponse:
+    if not IMAGE_ID_PATTERN.fullmatch(image_id):
+        raise HTTPException(status_code=404, detail="Image not found.")
+    path = settings.image_cache_dir / f"{image_id}.png"
+    if not path.is_file():
+        raise HTTPException(status_code=404, detail="Image not found.")
+    return FileResponse(path, media_type="image/png")
 
 
 @app.post("/chat/start", response_model=ChatStartResponse)

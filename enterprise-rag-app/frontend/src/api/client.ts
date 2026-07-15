@@ -45,3 +45,7 @@ export async function sendChatMessage(
 export function apiBaseUrl(): string {
   return API_BASE_URL;
 }
+
+export function imageUrl(imageId: string): string {
+  return `${API_BASE_URL}/images/${imageId}`;
+}

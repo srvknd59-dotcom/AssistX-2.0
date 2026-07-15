@@ -42,6 +42,7 @@ class Source(BaseModel):
     score: float
     content_type: str = "text"  # "text" | "table" | "image"
     page: int | None = None
+    image_id: str | None = None  # if set, the actual image is at GET /images/{image_id}
 
 
 class ChatSendResponse(BaseModel):

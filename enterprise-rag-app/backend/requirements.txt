@@ -5,4 +5,5 @@ openai>=1.30
 pydantic-settings>=2.2
 python-dotenv
 python-multipart
-pypdf
+pypdf[image]
+pdfplumber

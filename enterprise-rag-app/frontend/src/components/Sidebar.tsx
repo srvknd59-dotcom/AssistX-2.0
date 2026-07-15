@@ -35,13 +35,10 @@ export function Sidebar({ health, documents, onUploaded }: SidebarProps) {
     >
       <section>
         <SectionLabel>Vector database</SectionLabel>
-        <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
-          <div className="text-xl font-semibold tabular-nums" style={{ color: "var(--ink)" }}>
-            {health?.chunks_indexed ?? 0}
-          </div>
-          <div className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
-            chunks indexed
-          </div>
+        <div className="grid grid-cols-3 gap-2">
+          <StatTile value={health?.chunks_indexed ?? 0} label="chunks" />
+          <StatTile value={health?.tables_indexed ?? 0} label="tables" />
+          <StatTile value={health?.images_indexed ?? 0} label="images" />
         </div>
       </section>
 
@@ -106,5 +103,21 @@ function SectionLabel({ children }: { children: ReactNode }) {
     <h2 className="mb-2 text-xs font-semibold tracking-wide uppercase" style={{ color: "var(--ink-muted)" }}>
       {children}
     </h2>
+  );
+}
+
+function StatTile({ value, label }: { value: number; label: string }) {
+  return (
+    <div
+      className="rounded-xl border p-2.5 text-center"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}
+    >
+      <div className="text-lg font-semibold tabular-nums" style={{ color: "var(--ink)" }}>
+        {value}
+      </div>
+      <div className="text-[10px]" style={{ color: "var(--ink-muted)" }}>
+        {label}
+      </div>
+    </div>
   );
 }

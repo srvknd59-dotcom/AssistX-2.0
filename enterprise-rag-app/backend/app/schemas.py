@@ -6,11 +6,15 @@ from pydantic import BaseModel
 class HealthResponse(BaseModel):
     status: str
     chunks_indexed: int
+    tables_indexed: int = 0
+    images_indexed: int = 0
 
 
 class IngestResponse(BaseModel):
     documents_indexed: int
     chunks_indexed: int
+    tables_indexed: int = 0
+    images_captioned: int = 0
 
 
 class DocumentInfo(BaseModel):
@@ -36,6 +40,8 @@ class Source(BaseModel):
     label: str  # source filename
     snippet: str
     score: float
+    content_type: str = "text"  # "text" | "table" | "image"
+    page: int | None = None
 
 
 class ChatSendResponse(BaseModel):

@@ -58,6 +58,31 @@ before running `/ingest`, or uploaded straight from the UI's sidebar (which
 saves the file to that same folder and lets you rebuild the index with one
 click) — mirroring what `ingestor.py` does in the production app.
 
+## PDF tables and images
+
+`.pdf` ingestion isn't plain-text-only. `app/rag/chunking.py` uses
+`pdfplumber` to detect tables per page and serializes each one to a
+Markdown table — kept as one atomic chunk (never split mid-row), so it
+embeds and retrieves as a structured table instead of jumbled inline text,
+and renders as a real `<table>` both in the chat answer and in the Sources
+panel. Embedded images are extracted with `pypdf` and described by a
+vision-capable model (`CHAT_MODEL` — e.g. `gpt-4o-mini`) the same way the
+production `ingestor.py` captions diagrams; the caption becomes its own
+searchable chunk. Sources are tagged `content_type: text | table | image`
+plus a `page` number, which the UI shows as a badge on each citation.
+
+This costs one extra OpenAI call per image during ingestion. Tune it in
+`.env`:
+
+```
+CAPTION_IMAGES=true          # set false to skip image captioning entirely
+MAX_IMAGES_PER_DOCUMENT=20   # cap per document, in case a PDF has many images
+```
+
+Decorative images (logos, icons, dividers) are filtered automatically — the
+vision model is asked to reply `DECORATIVE` for those, and they're skipped
+rather than indexed as noise.
+
 ## Compared to rag-ui-tutorial's NumPy store
 
 | | rag-ui-tutorial | This project |
@@ -82,8 +107,8 @@ enterprise-rag-app/
       config.py           Settings loaded from .env
       schemas.py           Request/response models (the API contract)
       rag/
-        chunking.py         Load + split documents
-        embeddings.py         OpenAI embedding calls
+        chunking.py         Load + split documents; PDF tables (pdfplumber) + images (pypdf)
+        embeddings.py         OpenAI embedding calls + vision image captioning
         vector_store.py        Elasticsearch wrapper (dense_vector + kNN)
         pipeline.py              Ties it together: ingest + retrieve + generate
     data/
@@ -141,7 +166,7 @@ once the backend is running. Summary:
 | Method & path | Purpose |
 | --- | --- |
 | `GET /health` | Service status + how many chunks are indexed |
-| `POST /ingest` | (Re)build the Elasticsearch index from `data/documents/` |
+| `POST /ingest` | (Re)build the Elasticsearch index from `data/documents/` — extracts text, tables, and captioned images from PDFs |
 | `POST /documents/upload` | Upload a `.txt`/`.md`/`.pdf` file into `data/documents/` |
 | `GET /documents` | List indexed documents and their chunk counts |
 | `POST /chat/start` | Create a chat session, returns a `session_id` |

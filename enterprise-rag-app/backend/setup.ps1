@@ -87,7 +87,7 @@ if ($LASTEXITCODE -ne 0) {
 
 # Don't just trust the exit code - confirm the packages this app actually
 # needs are really importable before declaring success.
-python -c "import fastapi, chromadb, openai" 2>$null
+python -c "import fastapi, elasticsearch, openai" 2>$null
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "pip reported success but key packages still aren't importable."

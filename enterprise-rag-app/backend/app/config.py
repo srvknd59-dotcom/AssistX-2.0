@@ -15,13 +15,9 @@ class Settings(BaseSettings):
     embed_dims: int = 1536  # must match EMBED_MODEL's output size (3-small=1536, 3-large=3072)
     chat_model: str = "gpt-4o-mini"
 
-    # "chroma" (embedded, no server, default) or "elasticsearch" (separate server,
-    # matches the production chat_service.py/ingestor.py in this repo). See
+    # Elasticsearch is the vector store - the same engine the production
+    # chat_service.py/ingestor.py in this repo use. See
     # backend/README_ELASTICSEARCH.md for local Windows setup.
-    vector_db_backend: str = "chroma"
-
-    chroma_persist_dir: str = "./chroma_data"
-
     es_url: str = "http://localhost:9200"
     es_index_prefix: str = "rag"
     es_username: str = ""
@@ -38,13 +34,6 @@ class Settings(BaseSettings):
     @property
     def cors_origins(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origin.split(",") if origin.strip()]
-
-    @property
-    def chroma_path(self) -> Path:
-        path = Path(self.chroma_persist_dir)
-        if not path.is_absolute():
-            path = BACKEND_ROOT / path
-        return path
 
     @property
     def documents_dir(self) -> Path:

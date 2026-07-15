@@ -7,10 +7,12 @@ background, using `ONE_DAY_PLAN.md` as the hands-on material she'll follow.
 This guide is the layer above that: how to prepare, how to open, how to
 pace and narrate each block, and what to do when something breaks live.
 
-**Vector database for this session: Elasticsearch**, with Chroma kept as a
-one-line fallback (`VECTOR_DB_BACKEND=chroma` in `.env`) if the Elasticsearch
-install eats too much time. Don't treat that fallback as failure — treat it
-as the plan working as designed.
+**Vector database for this session: Elasticsearch** — it's the only backend
+this project supports, matching the production app exactly. There's no
+config toggle to fall back to if it gives trouble, which makes the dry run
+in Part 1 not optional: Elasticsearch is a real server to install and
+start, the one part of the day that isn't just a Python/npm dependency, and
+it needs to actually work before Hour 2 can finish.
 
 ---
 
@@ -32,8 +34,8 @@ rushing the fundamentals in Hours 1-4.
   against a throwaway ingest + chat call. Nothing derails a session faster
   than debugging an invalid key live.
 - Confirm the laptop meets Elasticsearch's practical minimum: **8GB RAM**
-  comfortably, less than that and you should default straight to Chroma and
-  skip the Elasticsearch portion entirely rather than fight it live.
+  comfortably. If it has less, lower the JVM heap in `config\jvm.options`
+  (see `backend/README_ELASTICSEARCH.md`) *before* the session, not during.
 - Pre-download the Elasticsearch Windows ZIP yourself if you have any
   control over the machine beforehand — it's a large download, and doing it
   live burns 10-15 minutes of session time on a slow connection.
@@ -104,7 +106,7 @@ documents instead of sending the whole file," stay here — everything after
 this hour is easier to teach if this lands first, and harder to teach if it
 doesn't.
 
-### Hour 2-3 (backend + Elasticsearch) — this is where the day is most at risk
+### Hour 2 (Elasticsearch + backend) — this is where the day is most at risk
 
 This is the one block most likely to eat your buffer time, because it's the
 only part of the day that involves installing and running a real database
@@ -117,11 +119,19 @@ server rather than a Python/npm dependency. Follow
 - When you disable security in `elasticsearch.yml`, explain *why* in one
   sentence ("this is only OK because it never leaves this laptop") rather
   than skipping past it — it's a real security concept worth 30 seconds.
-- **Set a hard time box.** If Elasticsearch isn't answering on
-  `localhost:9200` within 20 minutes of starting it, stop, switch
-  `VECTOR_DB_BACKEND` to `chroma` in `.env`, and move on. Come back to
-  Elasticsearch at the end of the day if time allows — don't let it
-  consume Hours 4-7.
+- **If Elasticsearch won't start after 20-30 minutes on the troubleshooting
+  table in `backend/README_ELASTICSEARCH.md`**, don't keep burning session
+  time alone at the keyboard. Options, roughly in order:
+  - Take the lunch break early — debug during it without an audience,
+    resume Hour 2 afterward.
+  - If you have your own already-working laptop, screen-share it and let
+    her drive Hours 3, 5, and 6 (retrieval, code walkthrough, customizing)
+    on your instance while her Elasticsearch install gets sorted separately
+    — then switch back to her machine for Hour 7's restart-and-verify,
+    which only means something on the machine she'll actually keep using.
+  - If this is a recurring problem, it likely means the dry run in Part 1
+    didn't happen or didn't match her hardware closely enough — worth
+    noting for next time rather than solving from scratch live.
 - Once `/ingest` succeeds, have her open `http://localhost:9200/rag_documents/_count`
   directly in a browser. Seeing the raw Elasticsearch response (not just
   the app's `/health` endpoint) is what makes "this is a real database"
@@ -163,7 +173,7 @@ Everything referenced in this guide, in one place:
 | `ONE_DAY_PLAN.md` | this folder | The hands-on material she follows |
 | `TRAINER_GUIDE.md` | this folder (this file) | Your facilitation script |
 | `README.md` | this folder | Architecture overview, points here from both other docs |
-| `backend/README_ELASTICSEARCH.md` | `backend/` | Exact Elasticsearch install/config steps for Hour 2-3 |
+| `backend/README_ELASTICSEARCH.md` | `backend/` | Exact Elasticsearch install/config steps for Hour 2 |
 | `artefacts/opening-speech.html` | `artefacts/` | Speaker script for the first 15 minutes — open in a browser |
 | `artefacts/architecture-diagram.html` | `artefacts/` | Visual ingestion/query flow diagram — open in a browser |
 | This repo, on her machine | — | The actual code |
@@ -180,8 +190,8 @@ Spend the last 10 minutes on three things, in this order:
    memory. This is the real check for whether the day worked.
 2. **Name what she can do next**: point her at the "Extending this project"
    section in `README.md` — swap in her own real documents, try changing
-   `top_k`, try the Chroma-vs-Elasticsearch comparison table. Concrete next
-   steps beat "let me know if you have questions."
+   `top_k`, try adding metadata filtering or hybrid BM25 search. Concrete
+   next steps beat "let me know if you have questions."
 3. **Ask what confused her.** Write it down. It's the most useful feedback
    you'll get for improving this guide the next time you run it.
 
@@ -199,7 +209,7 @@ group:
 - Pair people up (driver/navigator, swap halfway) rather than having anyone
   purely watch — the facilitation rules in Part 3 apply per pair, not per
   room.
-- Budget extra time for Hour 2-3 — Elasticsearch heap-size and port
-  conflicts are exactly the kind of issue that's different on every laptop,
-  so multiply your single-person time estimate, don't just add a fixed
+- Budget extra time for Hour 2 — Elasticsearch heap-size and port conflicts
+  are exactly the kind of issue that's different on every laptop, so
+  multiply your single-person time estimate, don't just add a fixed
   buffer.

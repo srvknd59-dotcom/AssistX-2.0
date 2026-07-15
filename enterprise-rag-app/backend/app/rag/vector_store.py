@@ -1,30 +1,55 @@
-"""A real, on-disk vector database (Chroma), instead of the in-memory NumPy
-array used in rag-ui-tutorial. Chroma runs embedded in this process, persists
-to a folder on disk, and needs no server or Docker — but it's the same kind
-of engine (HNSW approximate nearest-neighbor index) that production vector
-databases use, just running locally instead of as a managed cluster.
+"""The vector store: a real Elasticsearch index with a dense_vector field and
+kNN search, the same approach the production chat_service.py/ingestor.py in
+this repo use.
+
+Elasticsearch is a separate server process, so this requires Elasticsearch
+running and reachable at ES_URL before the backend starts. See
+backend/README_ELASTICSEARCH.md for local setup on Windows.
 """
 
-import chromadb
-from chromadb.config import Settings as ChromaSettings
+from elasticsearch import Elasticsearch
+from elasticsearch.helpers import bulk
 
 
-class ChromaVectorStore:
-    def __init__(self, persist_dir: str):
-        self.client = chromadb.PersistentClient(
-            path=persist_dir, settings=ChromaSettings(anonymized_telemetry=False)
-        )
+class ElasticsearchVectorStore:
+    def __init__(
+        self,
+        url: str,
+        index_prefix: str,
+        dims: int,
+        username: str = "",
+        password: str = "",
+    ) -> None:
+        if username and password:
+            self.client = Elasticsearch(url, basic_auth=(username, password))
+        else:
+            self.client = Elasticsearch(url)
+        self.index_prefix = index_prefix
+        self.dims = dims
 
-    def _collection(self, name: str):
-        # cosine distance space matches how OpenAI embeddings are typically compared
-        return self.client.get_or_create_collection(name=name, metadata={"hnsw:space": "cosine"})
+    def _index_name(self, name: str) -> str:
+        return f"{self.index_prefix}_{name}"
 
     def reset_collection(self, name: str) -> None:
-        try:
-            self.client.delete_collection(name)
-        except Exception:
-            pass
-        self._collection(name)
+        index = self._index_name(name)
+        if self.client.indices.exists(index=index):
+            self.client.indices.delete(index=index)
+        self.client.indices.create(
+            index=index,
+            mappings={
+                "properties": {
+                    "text": {"type": "text"},
+                    "source": {"type": "keyword"},
+                    "chunk_index": {"type": "integer"},
+                    "embedding": {
+                        "type": "dense_vector",
+                        "dims": self.dims,
+                        "index": True,
+                        "similarity": "cosine",
+                    },
+                }
+            },
+        )
 
     def add(
         self,
@@ -36,31 +61,59 @@ class ChromaVectorStore:
     ) -> None:
         if not ids:
             return
-        self._collection(name).add(ids=ids, documents=texts, embeddings=embeddings, metadatas=metadatas)
+        index = self._index_name(name)
+        actions = [
+            {
+                "_index": index,
+                "_id": doc_id,
+                "_source": {"text": text, "embedding": embedding, **metadata},
+            }
+            for doc_id, text, embedding, metadata in zip(ids, texts, embeddings, metadatas)
+        ]
+        bulk(self.client, actions)
+        self.client.indices.refresh(index=index)
 
     def count(self, name: str) -> int:
-        try:
-            return self._collection(name).count()
-        except Exception:
+        index = self._index_name(name)
+        if not self.client.indices.exists(index=index):
             return 0
+        return self.client.count(index=index)["count"]
 
     def query(self, name: str, query_embedding: list[float], top_k: int) -> list[dict]:
-        collection = self._collection(name)
-        total = collection.count()
-        if total == 0:
+        index = self._index_name(name)
+        if not self.client.indices.exists(index=index):
             return []
 
-        results = collection.query(query_embeddings=[query_embedding], n_results=min(top_k, total))
-        out = []
-        for doc, meta, distance in zip(
-            results["documents"][0], results["metadatas"][0], results["distances"][0]
-        ):
-            out.append({"text": doc, "metadata": meta, "score": 1 - distance})
-        return out
+        response = self.client.search(
+            index=index,
+            knn={
+                "field": "embedding",
+                "query_vector": query_embedding,
+                "k": top_k,
+                "num_candidates": max(top_k * 10, 50),
+            },
+            size=top_k,
+            source=["text", "source", "chunk_index"],
+        )
+
+        return [
+            {
+                "text": hit["_source"]["text"],
+                "metadata": {"source": hit["_source"]["source"], "chunk_index": hit["_source"].get("chunk_index")},
+                "score": hit["_score"],
+            }
+            for hit in response["hits"]["hits"]
+        ]
 
     def list_documents(self, name: str) -> list[dict]:
-        stored = self._collection(name).get()
-        counts: dict[str, int] = {}
-        for meta in stored["metadatas"]:
-            counts[meta["source"]] = counts.get(meta["source"], 0) + 1
-        return [{"name": source, "chunk_count": n} for source, n in counts.items()]
+        index = self._index_name(name)
+        if not self.client.indices.exists(index=index):
+            return []
+
+        response = self.client.search(
+            index=index,
+            size=0,
+            aggs={"by_source": {"terms": {"field": "source", "size": 1000}}},
+        )
+        buckets = response["aggregations"]["by_source"]["buckets"]
+        return [{"name": b["key"], "chunk_count": b["doc_count"]} for b in buckets]

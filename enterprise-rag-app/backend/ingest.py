@@ -1,6 +1,5 @@
-"""Command-line ingestion: builds the vector index without needing the API
-server running. Writes into whichever backend VECTOR_DB_BACKEND in .env
-selects (chroma or elasticsearch) — this file doesn't know or care which.
+"""Command-line ingestion: builds the Elasticsearch index without needing the
+API server running.
 
 Usage:
     python ingest.py                      # ingest backend/data/documents
@@ -23,6 +22,6 @@ if __name__ == "__main__":
     pipeline = RagPipeline()
     stats = pipeline.ingest_documents(root)
 
-    print(f"Vector store backend : {settings.vector_db_backend}")
+    print(f"Elasticsearch index  : {settings.es_index_prefix}_documents")
     print(f"Documents read from  : {root or settings.documents_dir}")
     print(f"Indexed {stats['documents_indexed']} document(s) into {stats['chunks_indexed']} chunk(s).")

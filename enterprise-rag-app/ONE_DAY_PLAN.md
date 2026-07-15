@@ -262,8 +262,10 @@ below together so she knows what to do if something breaks after you leave.
 | Symptom | Fix |
 | --- | --- |
 | `.\setup.ps1` errors with "running scripts is disabled on this system" | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned` once, then retry. |
-| `python` / `py` not recognized | Reinstall Python from python.org and check "Add python.exe to PATH" on the first install screen; open a **new** PowerShell window afterward. |
+| A script errors with "is not digitally signed" / `UnauthorizedAccess` | Windows flags files extracted from a downloaded ZIP as "from the internet." Run once from the `enterprise-rag-app` folder: `Get-ChildItem -Recurse -Filter *.ps1 \| Unblock-File`, then retry. |
+| `python` / `py` not recognized | Install Python 3.10+ from python.org and check "Add python.exe to PATH" on the first install screen; open a **new** PowerShell window afterward. Confirm with `py --list`. |
 | `npm` not recognized | Reinstall Node.js from nodejs.org; open a new PowerShell window afterward. |
+| Setup keeps failing in confusing ways even after fixing the above | The `.venv` folder may be left over from a broken earlier attempt (it's permanently bound to whatever Python created it). Delete it and let `.\setup.ps1` rebuild it: `Remove-Item -Recurse -Force backend\.venv`, then `.\setup.ps1` again. |
 | Backend fails with an OpenAI authentication error | Open `backend\.env`, confirm `OPENAI_API_KEY` is a real key (starts `sk-`), save, then stop (Ctrl+C) and re-run `.\run.ps1` — env vars are only read at startup. |
 | Frontend loads but shows "Backend unreachable" | Make sure the backend PowerShell window is still open and shows `Uvicorn running`. Check it's on port 8000: http://localhost:8000/health should return JSON directly in a browser. |
 | Browser console shows a CORS error | Confirm `backend\.env` has `CORS_ORIGIN=http://localhost:5173,http://127.0.0.1:5173` and restart the backend. Make sure the frontend URL you're opening matches one of those origins exactly. |

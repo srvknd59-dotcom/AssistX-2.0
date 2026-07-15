@@ -295,7 +295,7 @@
     </div>
     <div class="swap-note">
       <span class="mark">&#8942;</span>
-      <span><code>VECTOR_DB_BACKEND</code> in <code>backend/.env</code> swaps step 4/3's Elasticsearch node for Chroma (a local on-disk database, no server) — everything else in both flows is identical either way.</span>
+      <span>Steps 4 and 3 hit the same Elasticsearch index: <code>{ES_INDEX_PREFIX}_documents</code> (default <code>rag_documents</code>) — set in <code>backend/.env</code>.</span>
     </div>
   </section>
 

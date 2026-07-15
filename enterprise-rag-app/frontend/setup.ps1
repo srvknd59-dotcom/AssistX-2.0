@@ -1,5 +1,7 @@
 # Windows PowerShell setup for the React frontend. No Docker required.
 # Requires Node.js 18+ (https://nodejs.org). Run from PowerShell: .\setup.ps1
+# If PowerShell says this script "is not digitally signed", run once from
+# the enterprise-rag-app folder: Get-ChildItem -Recurse -Filter *.ps1 | Unblock-File
 
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot

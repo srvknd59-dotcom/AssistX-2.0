@@ -5,15 +5,9 @@ this repo, simplified to one document collection and one similarity search
 instead of Elasticsearch's hybrid BM25 + vector + HyDE + multi-query
 expansion:
 
-    ingest:   read files -> chunk -> embed -> store in the vector store
+    ingest:   read files -> chunk -> embed -> store in Elasticsearch
     ask:      embed the question -> retrieve top_k chunks -> ask the LLM,
               grounded in only what was retrieved, with citations
-
-The vector store itself is swappable — Chroma (embedded, default) or
-Elasticsearch (a real server, same engine the production app uses) — chosen
-by VECTOR_DB_BACKEND in .env. Both implement the same reset_collection/add/
-count/query/list_documents interface, so nothing else in this file needs to
-know which one is active.
 """
 
 import uuid
@@ -24,23 +18,19 @@ from openai import OpenAI
 from app.config import settings
 from app.rag.chunking import chunk_text, load_documents
 from app.rag.embeddings import embed_texts
-from app.rag.vector_store import ChromaVectorStore
+from app.rag.vector_store import ElasticsearchVectorStore
 
 COLLECTION_NAME = "documents"
 
 
-def build_vector_store():
-    if settings.vector_db_backend == "elasticsearch":
-        from app.rag.vector_store_elasticsearch import ElasticsearchVectorStore
-
-        return ElasticsearchVectorStore(
-            url=settings.es_url,
-            index_prefix=settings.es_index_prefix,
-            dims=settings.embed_dims,
-            username=settings.es_username,
-            password=settings.es_password,
-        )
-    return ChromaVectorStore(str(settings.chroma_path))
+def build_vector_store() -> ElasticsearchVectorStore:
+    return ElasticsearchVectorStore(
+        url=settings.es_url,
+        index_prefix=settings.es_index_prefix,
+        dims=settings.embed_dims,
+        username=settings.es_username,
+        password=settings.es_password,
+    )
 
 
 SYSTEM_PROMPT = """You are a helpful assistant that answers questions about a set of ingested

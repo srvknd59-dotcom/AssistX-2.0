@@ -24,7 +24,6 @@ from openai import OpenAI
 from app.config import settings
 from app.rag.chunking import chunk_text, load_documents
 from app.rag.embeddings import embed_texts
-from app.rag.vector_store import ChromaVectorStore
 
 COLLECTION_NAME = "documents"
 
@@ -40,6 +39,9 @@ def build_vector_store():
             username=settings.es_username,
             password=settings.es_password,
         )
+
+    from app.rag.vector_store import ChromaVectorStore
+
     return ChromaVectorStore(str(settings.chroma_path))
 
 

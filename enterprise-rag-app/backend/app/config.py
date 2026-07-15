@@ -29,6 +29,13 @@ class Settings(BaseSettings):
     chunk_size_words: int = 180
     chunk_overlap_words: int = 30
 
+    # Vision captioning for images embedded in ingested PDFs (chat_model does
+    # the captioning - gpt-4o-mini and other current OpenAI chat models
+    # support vision). Each image costs one extra API call during ingestion,
+    # so it's capped per document and can be turned off entirely.
+    caption_images: bool = True
+    max_images_per_document: int = 20
+
     data_dir: str = "./data"
 
     @property

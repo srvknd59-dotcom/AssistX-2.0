@@ -25,3 +25,5 @@ if __name__ == "__main__":
     print(f"Elasticsearch index  : {settings.es_index_prefix}_documents")
     print(f"Documents read from  : {root or settings.documents_dir}")
     print(f"Indexed {stats['documents_indexed']} document(s) into {stats['chunks_indexed']} chunk(s).")
+    print(f"  of which tables    : {stats['tables_indexed']}")
+    print(f"  of which images    : {stats['images_captioned']} captioned")

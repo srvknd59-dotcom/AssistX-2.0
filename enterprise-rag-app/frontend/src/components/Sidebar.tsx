@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { uploadDocument } from "../api/client";
 import type { DocumentInfo, HealthStatus } from "../types";
 
@@ -29,45 +29,50 @@ export function Sidebar({ health, documents, onUploaded }: SidebarProps) {
   };
 
   return (
-    <aside className="hidden w-72 shrink-0 flex-col gap-6 border-r border-black/10 bg-white p-5 dark:border-white/10 dark:bg-neutral-900 md:flex">
+    <aside
+      className="hidden w-72 shrink-0 flex-col gap-6 overflow-y-auto border-r p-5 md:flex"
+      style={{ borderColor: "var(--border)", backgroundColor: "var(--surface)" }}
+    >
       <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-          Vector database
-        </h2>
-        <div className="rounded-lg border border-neutral-200 p-3 dark:border-neutral-700">
-          <div className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
+        <SectionLabel>Vector database</SectionLabel>
+        <div className="rounded-xl border p-3.5" style={{ borderColor: "var(--border)", backgroundColor: "var(--surface-2)" }}>
+          <div className="text-xl font-semibold tabular-nums" style={{ color: "var(--ink)" }}>
             {health?.chunks_indexed ?? 0}
           </div>
-          <div className="text-[11px] text-neutral-500 dark:text-neutral-400">chunks indexed</div>
+          <div className="text-[11px]" style={{ color: "var(--ink-muted)" }}>
+            chunks indexed
+          </div>
         </div>
       </section>
 
       <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-          Documents ({documents.length})
-        </h2>
+        <SectionLabel>Documents ({documents.length})</SectionLabel>
         <ul className="space-y-1">
           {documents.map((doc) => (
             <li
               key={doc.name}
-              className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-800"
+              className="flex items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors hover:bg-black/[0.03] dark:hover:bg-white/[0.05]"
+              style={{ color: "var(--ink)" }}
             >
               <span className="truncate">{doc.name}</span>
-              <span className="ml-2 shrink-0 rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-medium text-indigo-600 dark:bg-indigo-900/40 dark:text-indigo-300">
+              <span
+                className="ml-2 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium tabular-nums"
+                style={{ backgroundColor: "var(--accent-soft)", color: "var(--accent-ink)" }}
+              >
                 {doc.chunk_count} chunk{doc.chunk_count === 1 ? "" : "s"}
               </span>
             </li>
           ))}
           {documents.length === 0 && (
-            <li className="text-xs text-neutral-400">Not indexed yet — click "Rebuild index" above.</li>
+            <li className="text-xs" style={{ color: "var(--ink-muted)" }}>
+              Not indexed yet — click "Rebuild index" above.
+            </li>
           )}
         </ul>
       </section>
 
       <section>
-        <h2 className="mb-2 text-xs font-semibold uppercase tracking-wide text-neutral-500 dark:text-neutral-400">
-          Add a document
-        </h2>
+        <SectionLabel>Add a document</SectionLabel>
         <input
           ref={fileInput}
           type="file"
@@ -77,11 +82,29 @@ export function Sidebar({ health, documents, onUploaded }: SidebarProps) {
             const file = e.target.files?.[0];
             if (file) handleFile(file);
           }}
-          className="block w-full text-xs text-neutral-500 file:mr-2 file:rounded-md file:border-0 file:bg-indigo-600 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white hover:file:bg-indigo-700 dark:text-neutral-400"
+          className="block w-full text-xs file:mr-2 file:cursor-pointer file:rounded-md file:border-0 file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-white"
+          style={{ color: "var(--ink-muted)" }}
         />
-        {uploading && <p className="mt-2 text-xs text-neutral-400">Uploading…</p>}
-        {uploadMsg && <p className="mt-2 text-xs text-neutral-500 dark:text-neutral-400">{uploadMsg}</p>}
+        <style>{`input[type="file"]::file-selector-button { background-color: var(--accent); } input[type="file"]::file-selector-button:hover { background-color: var(--accent-hover); }`}</style>
+        {uploading && (
+          <p className="mt-2 text-xs" style={{ color: "var(--ink-muted)" }}>
+            Uploading…
+          </p>
+        )}
+        {uploadMsg && (
+          <p className="mt-2 text-xs" style={{ color: "var(--ink-muted)" }}>
+            {uploadMsg}
+          </p>
+        )}
       </section>
     </aside>
+  );
+}
+
+function SectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <h2 className="mb-2 text-xs font-semibold tracking-wide uppercase" style={{ color: "var(--ink-muted)" }}>
+      {children}
+    </h2>
   );
 }
